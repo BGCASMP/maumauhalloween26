@@ -116,8 +116,23 @@
 
     <!-- Live Score & Timer -->
     <div class="flex items-center space-x-2 sm:space-x-3">
-      <div class="flex items-center space-x-1 bg-amber-500/20 px-2.5 py-1 rounded-xl border border-amber-500/40">
-        <span class="text-base sm:text-lg">🍬</span>
+      <div class="flex items-center space-x-1.5 bg-amber-500/20 px-2.5 py-1 rounded-xl border border-amber-500/40">
+        <!-- Colorful Candy SVG Icon (Guaranteed never black on any device) -->
+        <svg class="w-5 h-5 shrink-0 filter drop-shadow-[0_0_6px_rgba(251,191,36,0.8)]" viewBox="0 0 32 32" fill="none">
+          <!-- Left Wrapper Twist -->
+          <path d="M4 11L10 16L4 21V11Z" fill="#ec4899" stroke="#be185d" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M4 11L7 16L4 21" stroke="#fbcfe8" stroke-width="1"/>
+          <!-- Right Wrapper Twist -->
+          <path d="M28 11L22 16L28 21V11Z" fill="#ec4899" stroke="#be185d" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M28 11L25 16L28 21" stroke="#fbcfe8" stroke-width="1"/>
+          <!-- Candy Body -->
+          <ellipse cx="16" cy="16" rx="8" ry="7" fill="#f43f5e" stroke="#9f1239" stroke-width="1.5"/>
+          <!-- Decorative Yellow & Purple Diagonal Stripes -->
+          <path d="M12 11C13.5 12.5 14 19.5 15.5 21" stroke="#facc15" stroke-width="2.2" stroke-linecap="round"/>
+          <path d="M16.5 11C18 12.5 18.5 19.5 20 21" stroke="#a855f7" stroke-width="2.2" stroke-linecap="round"/>
+          <!-- Specular Gloss Highlight -->
+          <path d="M12 13C14 11.5 18 11.5 20 13" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
         <span id="scoreText" class="pixel-text text-xs sm:text-sm text-amber-300">0</span>
       </div>
       <div id="timerContainer" class="flex items-center space-x-1 bg-indigo-500/20 px-2.5 py-1 rounded-xl border border-indigo-500/40 transition-colors duration-200">
@@ -969,6 +984,411 @@
       }
     }
 
+    /* 
+     * 徹底杜絕瀏覽器 Emoji 黑影問題：
+     * 全部使用 Canvas 原生路徑向量繪製，不依賴操作系統字型，確保 100% 繽紛色彩與 16-bit 街機質感！
+     */
+    function drawGameItem(c, item) {
+      const r = item.radius;
+
+      if (item.type === 0) {
+        // 🍭 棒棒糖 (Lollipop)
+        // 白色糖棒
+        c.fillStyle = '#f8fafc';
+        c.fillRect(-2.5, 0, 5, r * 1.35);
+        c.fillStyle = '#cbd5e1';
+        c.fillRect(0.5, 0, 2, r * 1.35);
+
+        // 棒棒糖圓形本體
+        c.beginPath();
+        c.arc(0, -2, r * 0.82, 0, Math.PI * 2);
+        c.fillStyle = '#f43f5e';
+        c.fill();
+        c.lineWidth = 2;
+        c.strokeStyle = '#9f1239';
+        c.stroke();
+
+        // 糖果雙色旋渦
+        c.lineWidth = 2.5;
+        c.strokeStyle = '#facc15';
+        c.beginPath();
+        c.arc(0, -2, r * 0.52, 0.4, Math.PI * 1.5);
+        c.stroke();
+        c.strokeStyle = '#ffffff';
+        c.beginPath();
+        c.arc(0, -2, r * 0.26, 1.8, Math.PI * 2.6);
+        c.stroke();
+
+        // 高光光澤
+        c.beginPath();
+        c.arc(-r * 0.28, -r * 0.45, r * 0.25, 0, Math.PI * 2);
+        c.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        c.fill();
+
+      } else if (item.type === 1) {
+        // 🍬 萬聖雙扭結糖果 (Wrapped Sweet Candy)
+        // 兩側包裝紙皺褶
+        c.fillStyle = '#ec4899';
+        c.strokeStyle = '#9d174d';
+        c.lineWidth = 1.5;
+        
+        // 左扭結
+        c.beginPath();
+        c.moveTo(-r * 0.5, 0);
+        c.lineTo(-r * 1.15, -r * 0.55);
+        c.lineTo(-r * 1.15, r * 0.55);
+        c.closePath();
+        c.fill(); c.stroke();
+
+        // 右扭結
+        c.beginPath();
+        c.moveTo(r * 0.5, 0);
+        c.lineTo(r * 1.15, -r * 0.55);
+        c.lineTo(r * 1.15, r * 0.55);
+        c.closePath();
+        c.fill(); c.stroke();
+
+        // 糖果主體 (圓潤橢圓)
+        c.beginPath();
+        c.ellipse(0, 0, r * 0.72, r * 0.58, 0, 0, Math.PI * 2);
+        c.fillStyle = '#f97316';
+        c.fill();
+        c.strokeStyle = '#c2410c';
+        c.lineWidth = 2;
+        c.stroke();
+
+        // 糖身黃/紫糖霜條紋
+        c.lineWidth = 2.5;
+        c.strokeStyle = '#facc15';
+        c.beginPath();
+        c.moveTo(-r * 0.2, -r * 0.48);
+        c.lineTo(-r * 0.05, r * 0.48);
+        c.stroke();
+
+        c.strokeStyle = '#a855f7';
+        c.beginPath();
+        c.moveTo(r * 0.1, -r * 0.48);
+        c.lineTo(r * 0.25, r * 0.48);
+        c.stroke();
+
+        // 弧形高光
+        c.lineWidth = 1.8;
+        c.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+        c.beginPath();
+        c.arc(0, -r * 0.18, r * 0.45, Math.PI * 1.1, Math.PI * 1.9);
+        c.stroke();
+
+      } else if (item.type === 2) {
+        // 🍫 巧克力塊 (Chocolate Bar with Golden Foil)
+        const w = r * 1.35;
+        const h = r * 1.45;
+
+        // 金色箔紙底層
+        c.fillStyle = '#f59e0b';
+        c.fillRect(-w/2, -h/2 + h * 0.35, w, h * 0.65);
+        c.strokeStyle = '#d97706';
+        c.lineWidth = 1.5;
+        c.strokeRect(-w/2, -h/2 + h * 0.35, w, h * 0.65);
+
+        // 露出的濃郁黑巧克力塊
+        c.fillStyle = '#58240c';
+        c.fillRect(-w/2, -h/2, w, h * 0.55);
+        c.strokeStyle = '#381608';
+        c.lineWidth = 2;
+        c.strokeRect(-w/2, -h/2, w, h * 0.55);
+
+        // 巧克力格紋凹槽
+        c.strokeStyle = '#7c2d12';
+        c.lineWidth = 1.5;
+        c.beginPath();
+        c.moveTo(-w/2 + 2, -h/2 + h * 0.27);
+        c.lineTo(w/2 - 2, -h/2 + h * 0.27);
+        c.moveTo(0, -h/2 + 2);
+        c.lineTo(0, -h/2 + h * 0.53);
+        c.stroke();
+
+        // 金箔撕開鋸齒邊
+        c.fillStyle = '#fbbf24';
+        c.beginPath();
+        c.moveTo(-w/2, -h/2 + h * 0.35);
+        c.lineTo(-w * 0.2, -h/2 + h * 0.42);
+        c.lineTo(w * 0.1, -h/2 + h * 0.33);
+        c.lineTo(w/2, -h/2 + h * 0.38);
+        c.lineTo(w/2, -h/2 + h * 0.48);
+        c.lineTo(-w/2, -h/2 + h * 0.48);
+        c.closePath();
+        c.fill();
+
+      } else if (item.type === 3) {
+        // 🍩 草莓糖霜甜甜圈 (Glazed Donut)
+        // 麵團外圈
+        c.beginPath();
+        c.arc(0, 0, r * 0.85, 0, Math.PI * 2);
+        c.fillStyle = '#d97706';
+        c.fill();
+        c.strokeStyle = '#92400e';
+        c.lineWidth = 2;
+        c.stroke();
+
+        // 粉紅草莓糖霜
+        c.beginPath();
+        c.arc(0, 0, r * 0.72, 0, Math.PI * 2);
+        c.fillStyle = '#f472b6';
+        c.fill();
+
+        // 甜甜圈中心孔洞
+        c.beginPath();
+        c.arc(0, 0, r * 0.32, 0, Math.PI * 2);
+        c.fillStyle = '#0f031e';
+        c.fill();
+        c.strokeStyle = '#d97706';
+        c.lineWidth = 2;
+        c.stroke();
+
+        // 彩色糖粒裝飾 (Rainbow Sprinkles)
+        const sprinkleColors = ['#fde047', '#38bdf8', '#4ade80', '#ffffff'];
+        const offsets = [
+          [-r * 0.45, -r * 0.3, 0.4],
+          [r * 0.42, -r * 0.32, -0.6],
+          [-r * 0.35, r * 0.38, 0.8],
+          [r * 0.38, r * 0.35, -0.2]
+        ];
+        offsets.forEach(([sx, sy, rot], idx) => {
+          c.save();
+          c.translate(sx, sy);
+          c.rotate(rot);
+          c.fillStyle = sprinkleColors[idx % sprinkleColors.length];
+          c.fillRect(-3, -1.2, 6, 2.4);
+          c.restore();
+        });
+
+      } else if (item.type === 4) {
+        // ⭐ 彩虹金星 (Super Star)
+        // 五角星幾何路徑
+        c.beginPath();
+        const spikes = 5;
+        const outer = r * 0.95;
+        const inner = r * 0.45;
+        let rot = Math.PI / 2 * 3;
+        const step = Math.PI / spikes;
+
+        for (let i = 0; i < spikes; i++) {
+          c.lineTo(Math.cos(rot) * outer, Math.sin(rot) * outer);
+          rot += step;
+          c.lineTo(Math.cos(rot) * inner, Math.sin(rot) * inner);
+          rot += step;
+        }
+        c.closePath();
+
+        const grad = c.createRadialGradient(0, -r * 0.2, 2, 0, 0, outer);
+        grad.addColorStop(0, '#fef08a');
+        grad.addColorStop(0.6, '#facc15');
+        grad.addColorStop(1, '#ea580c');
+        c.fillStyle = grad;
+        c.fill();
+        c.strokeStyle = '#b45309';
+        c.lineWidth = 2;
+        c.stroke();
+
+        // 萌萌大眼
+        c.fillStyle = '#0f172a';
+        c.fillRect(-r * 0.24, -r * 0.15, 3.5, 6);
+        c.fillRect(r * 0.14, -r * 0.15, 3.5, 6);
+        c.fillStyle = '#ffffff';
+        c.fillRect(-r * 0.24, -r * 0.15, 2, 2);
+        c.fillRect(r * 0.14, -r * 0.15, 2, 2);
+
+        // 星星頂部閃光
+        c.beginPath();
+        c.arc(-r * 0.32, -r * 0.45, 2.5, 0, Math.PI * 2);
+        c.fillStyle = '#ffffff';
+        c.fill();
+
+      } else if (item.type === 9) {
+        // 💖 回復愛心 (Healing Heart)
+        c.beginPath();
+        const s = r * 0.85;
+        c.moveTo(0, s * 0.7);
+        c.bezierCurveTo(-s * 1.1, s * 0.2, -s * 1.1, -s * 0.8, 0, -s * 0.45);
+        c.bezierCurveTo(s * 1.1, -s * 0.8, s * 1.1, s * 0.2, 0, s * 0.7);
+        c.closePath();
+
+        const heartGrad = c.createRadialGradient(0, -s * 0.2, 2, 0, 0, s);
+        heartGrad.addColorStop(0, '#fda4af');
+        heartGrad.addColorStop(0.5, '#f43f5e');
+        heartGrad.addColorStop(1, '#9f1239');
+        c.fillStyle = heartGrad;
+        c.fill();
+        c.strokeStyle = '#ffe4e6';
+        c.lineWidth = 2;
+        c.stroke();
+
+        // 愛心弧形高光
+        c.lineWidth = 2;
+        c.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+        c.beginPath();
+        c.arc(-s * 0.4, -s * 0.35, s * 0.3, Math.PI * 0.9, Math.PI * 1.8);
+        c.stroke();
+
+      } else if (item.type === 5) {
+        // 🧟 殭屍 (Frankenstein Zombie)
+        // 綠色方頭
+        c.fillStyle = '#84cc16';
+        c.fillRect(-r * 0.65, -r * 0.6, r * 1.3, r * 1.2);
+        c.strokeStyle = '#3f6212';
+        c.lineWidth = 2;
+        c.strokeRect(-r * 0.65, -r * 0.6, r * 1.3, r * 1.2);
+
+        // 紫色鋸齒瀏海
+        c.fillStyle = '#581c87';
+        c.beginPath();
+        c.moveTo(-r * 0.65, -r * 0.6);
+        c.lineTo(r * 0.65, -r * 0.6);
+        c.lineTo(r * 0.65, -r * 0.2);
+        c.lineTo(r * 0.35, -r * 0.4);
+        c.lineTo(0, -r * 0.2);
+        c.lineTo(-r * 0.35, -r * 0.4);
+        c.lineTo(-r * 0.65, -r * 0.2);
+        c.closePath();
+        c.fill();
+
+        // 紅光眼
+        c.fillStyle = '#dc2626';
+        c.fillRect(-r * 0.45, -r * 0.08, 5, 5);
+        c.fillRect(r * 0.2, -r * 0.08, 5, 5);
+
+        // 嘴部黑色縫線
+        c.strokeStyle = '#1e293b';
+        c.lineWidth = 2;
+        c.beginPath();
+        c.moveTo(-r * 0.35, r * 0.32);
+        c.lineTo(r * 0.35, r * 0.32);
+        c.moveTo(-r * 0.18, r * 0.22); c.lineTo(-r * 0.18, r * 0.42);
+        c.moveTo(r * 0.15, r * 0.22); c.lineTo(r * 0.15, r * 0.42);
+        c.stroke();
+
+      } else if (item.type === 6) {
+        // 🧛 吸血鬼 (Vampire Dracula)
+        // 黑色立領披風
+        c.fillStyle = '#dc2626';
+        c.beginPath();
+        c.moveTo(-r * 0.85, -r * 0.7);
+        c.lineTo(0, r * 0.8);
+        c.lineTo(r * 0.85, -r * 0.7);
+        c.lineTo(r * 0.5, r * 0.1);
+        c.lineTo(-r * 0.5, r * 0.1);
+        c.closePath();
+        c.fill();
+
+        // 白皙臉龐
+        c.beginPath();
+        c.arc(0, 0, r * 0.55, 0, Math.PI * 2);
+        c.fillStyle = '#f8fafc';
+        c.fill();
+        c.strokeStyle = '#0f172a';
+        c.lineWidth = 1.5;
+        c.stroke();
+
+        // 黑色尖美人尖頭髮
+        c.fillStyle = '#0f172a';
+        c.beginPath();
+        c.arc(0, -r * 0.12, r * 0.52, Math.PI, 0);
+        c.lineTo(0, -r * 0.15);
+        c.closePath();
+        c.fill();
+
+        // 紅眼與兩顆白尖牙
+        c.fillStyle = '#b91c1c';
+        c.fillRect(-r * 0.25, -r * 0.05, 3.5, 3.5);
+        c.fillRect(r * 0.12, -r * 0.05, 3.5, 3.5);
+
+        // 獠牙
+        c.fillStyle = '#ffffff';
+        c.beginPath();
+        c.moveTo(-r * 0.18, r * 0.2); c.lineTo(-r * 0.12, r * 0.38); c.lineTo(-r * 0.06, r * 0.2);
+        c.moveTo(r * 0.06, r * 0.2); c.lineTo(r * 0.12, r * 0.38); c.lineTo(r * 0.18, r * 0.2);
+        c.fill();
+
+      } else if (item.type === 7) {
+        // 🧙‍♀️ 女巫 (Witch)
+        // 綠臉
+        c.beginPath();
+        c.arc(0, r * 0.15, r * 0.48, 0, Math.PI * 2);
+        c.fillStyle = '#a3e635';
+        c.fill();
+        c.strokeStyle = '#4d7c0f';
+        c.lineWidth = 1.5;
+        c.stroke();
+
+        // 紫色長髮
+        c.fillStyle = '#c084fc';
+        c.fillRect(-r * 0.55, r * 0.05, 5, r * 0.6);
+        c.fillRect(r * 0.42, r * 0.05, 5, r * 0.6);
+
+        // 黑色寬沿尖頂巫師帽
+        c.fillStyle = '#3b0764';
+        // 帽沿
+        c.beginPath();
+        c.ellipse(0, -r * 0.05, r * 0.9, r * 0.25, 0, 0, Math.PI * 2);
+        c.fill();
+        // 帽頂
+        c.beginPath();
+        c.moveTo(-r * 0.5, -r * 0.05);
+        c.lineTo(r * 0.3, -r * 0.9);
+        c.lineTo(r * 0.5, -r * 0.05);
+        c.closePath();
+        c.fill();
+
+        // 橘色帽帶
+        c.fillStyle = '#f97316';
+        c.fillRect(-r * 0.4, -r * 0.18, r * 0.8, 4);
+
+        // 眼睛
+        c.fillStyle = '#1e1b4b';
+        c.fillRect(-r * 0.25, r * 0.1, 4, 4);
+        c.fillRect(r * 0.12, r * 0.1, 4, 4);
+
+      } else if (item.type === 8) {
+        // 💀 骷髏 (Skull)
+        // 顱骨主體
+        c.beginPath();
+        c.arc(0, -r * 0.15, r * 0.58, 0, Math.PI * 2);
+        c.fillStyle = '#f8fafc';
+        c.fill();
+
+        // 下顎
+        c.fillRect(-r * 0.32, r * 0.15, r * 0.64, r * 0.4);
+        c.strokeStyle = '#64748b';
+        c.lineWidth = 1.8;
+        c.stroke();
+
+        // 黑空眼窩
+        c.fillStyle = '#0f172a';
+        c.beginPath();
+        c.arc(-r * 0.25, -r * 0.12, r * 0.16, 0, Math.PI * 2);
+        c.arc(r * 0.25, -r * 0.12, r * 0.16, 0, Math.PI * 2);
+        c.fill();
+
+        // 倒三角鼻孔
+        c.beginPath();
+        c.moveTo(0, r * 0.02);
+        c.lineTo(-3, r * 0.14);
+        c.lineTo(3, r * 0.14);
+        c.closePath();
+        c.fill();
+
+        // 骷髏牙縫線
+        c.strokeStyle = '#475569';
+        c.lineWidth = 1.5;
+        c.beginPath();
+        c.moveTo(-r * 0.25, r * 0.32); c.lineTo(r * 0.25, r * 0.32);
+        c.moveTo(-r * 0.15, r * 0.22); c.lineTo(-r * 0.15, r * 0.42);
+        c.moveTo(0, r * 0.22); c.lineTo(0, r * 0.42);
+        c.moveTo(r * 0.15, r * 0.22); c.lineTo(r * 0.15, r * 0.42);
+        c.stroke();
+      }
+    }
+
     function advanceHardModeStage() {
       sound.playStageClearHorn();
 
@@ -1192,76 +1612,67 @@
         ctx.rotate(item.rot);
 
         if (item.isHazard) {
-          // MONSTERS: RED HAZARD WARNING RING + BADGE
-          ctx.shadowColor = '#ef4444';
-          ctx.shadowBlur = 16;
-
+          // 怪物警告光環（紅色外框與半透明底色）
           ctx.strokeStyle = 'rgba(239, 68, 68, 0.95)';
           ctx.lineWidth = 2.5;
           ctx.beginPath();
           ctx.arc(0, 0, item.radius + 5, 0, Math.PI * 2);
           ctx.stroke();
 
-          ctx.fillStyle = 'rgba(153, 27, 27, 0.5)';
+          ctx.fillStyle = 'rgba(153, 27, 27, 0.35)';
           ctx.beginPath();
           ctx.arc(0, 0, item.radius + 3, 0, Math.PI * 2);
           ctx.fill();
 
-          // 關鍵修正：iOS Safari 遇到 shadowBlur 時繪製 Emoji 會變成黑色剪影，必須先清空陰影！
-          ctx.shadowBlur = 0;
-          ctx.shadowColor = 'transparent';
+          // 繪製高解析度彩色向量怪物
+          drawGameItem(ctx, item);
 
-          ctx.font = `${item.radius * 1.5}px "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
+          // 角落警示標籤
+          ctx.fillStyle = '#ef4444';
+          ctx.font = 'bold 12px sans-serif';
           ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(item.emoji, 0, 2);
+          ctx.fillText('!', item.radius * 0.75, -item.radius * 0.7);
 
-          ctx.font = '11px "Apple Color Emoji", "Segoe UI Emoji", sans-serif';
-          ctx.fillText('⚠️', item.radius * 0.7, -item.radius * 0.7);
         } else if (item.isHeart) {
-          // RARE HEALING HEART: ROSE GLOW AURA + PULSE
-          ctx.shadowColor = '#f43f5e';
-          ctx.shadowBlur = 22;
-
+          // 回血心心粉紅光暈
           ctx.strokeStyle = 'rgba(244, 63, 94, 0.9)';
           ctx.lineWidth = 2.5;
           ctx.beginPath();
           ctx.arc(0, 0, item.radius + 5, 0, Math.PI * 2);
           ctx.stroke();
 
-          ctx.fillStyle = 'rgba(244, 63, 94, 0.28)';
+          ctx.fillStyle = 'rgba(244, 63, 94, 0.25)';
           ctx.beginPath();
           ctx.arc(0, 0, item.radius + 3, 0, Math.PI * 2);
           ctx.fill();
 
-          // 關鍵修正：清空陰影以保留 iOS 彩色 Emoji
-          ctx.shadowBlur = 0;
-          ctx.shadowColor = 'transparent';
+          // 繪製粉紅寶石愛心
+          drawGameItem(ctx, item);
 
-          ctx.font = `${item.radius * 1.5}px "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(item.emoji, 0, 2);
         } else {
-          // CANDIES: GOLDEN/PASTEL GLOW
-          ctx.shadowColor = item.type === 4 ? '#facc15' : '#f472b6';
-          ctx.shadowBlur = item.type === 4 ? 20 : 8;
-
+          // 糖果金黃/粉紫光暈圈
           if (item.type === 4) {
+            // 彩虹星星黃金光圈
             ctx.fillStyle = 'rgba(250, 204, 21, 0.25)';
             ctx.beginPath();
             ctx.arc(0, 0, item.radius + 6, 0, Math.PI * 2);
             ctx.fill();
+
+            ctx.strokeStyle = 'rgba(250, 204, 21, 0.8)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(0, 0, item.radius + 6, 0, Math.PI * 2);
+            ctx.stroke();
+          } else {
+            // 一般糖果柔和粉光
+            ctx.fillStyle = 'rgba(244, 114, 182, 0.15)';
+            ctx.beginPath();
+            ctx.arc(0, 0, item.radius + 4, 0, Math.PI * 2);
+            ctx.fill();
           }
 
-          // 關鍵修正：畫完外圈光暈後關閉陰影，再印出彩色 Emoji
-          ctx.shadowBlur = 0;
-          ctx.shadowColor = 'transparent';
-
-          ctx.font = `${item.radius * 1.5}px "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(item.emoji, 0, 2);
+          // 繪製高飽和度美味彩色糖果
+          drawGameItem(ctx, item);
         }
 
         ctx.restore();
