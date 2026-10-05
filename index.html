@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>茂茂接糖果派對 - 15秒闖關極限狂潮</title>
+  <title>茂茂接糖果派對 & 茂茂派糖大挑戰 (Roguelike)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,31 +19,33 @@
       height: 100%;
       height: 100dvh;
       overflow: hidden;
+      margin: 0;
+      padding: 0;
+      background: #080210;
     }
     body {
       font-family: 'Fredoka', 'Noto Sans TC', sans-serif;
       touch-action: none;
       user-select: none;
       -webkit-user-select: none;
-      background: #090214;
-      padding-top: max(8px, env(safe-area-inset-top));
+      padding-top: max(6px, env(safe-area-inset-top));
       padding-bottom: max(6px, env(safe-area-inset-bottom));
-      padding-left: max(8px, env(safe-area-inset-left));
-      padding-right: max(8px, env(safe-area-inset-right));
+      padding-left: max(6px, env(safe-area-inset-left));
+      padding-right: max(6px, env(safe-area-inset-right));
     }
 
     .pixel-text {
       font-family: 'Press Start 2P', monospace;
     }
 
-    /* 16-bit CRT Scanlines Overlay */
+    /* 16-bit CRT Scanline Overlay */
     .crt-screen::before {
       content: " ";
       display: block;
       position: absolute;
       top: 0; left: 0; bottom: 0; right: 0;
-      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-      z-index: 20;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+      z-index: 15;
       background-size: 100% 3px, 6px 100%;
       pointer-events: none;
       border-radius: 1.5rem;
@@ -52,10 +54,10 @@
     /* SNES Retro Title Glow */
     .retro-title-shadow {
       text-shadow: 
-        3px 3px 0 #7e22ce,
-        -3px -3px 0 #f97316,
-        3px -3px 0 #facc15,
-        -3px 3px 0 #ec4899,
+        2px 2px 0 #7e22ce,
+        -2px -2px 0 #f97316,
+        2px -2px 0 #facc15,
+        -2px 2px 0 #ec4899,
         0 6px 12px rgba(0,0,0,0.9);
     }
 
@@ -71,19 +73,10 @@
 
     @keyframes floatGhost {
       0%, 100% { transform: translateY(0px) rotate(0deg); }
-      50% { transform: translateY(-10px) rotate(3deg); }
+      50% { transform: translateY(-8px) rotate(2deg); }
     }
     .animate-ghost-float {
       animation: floatGhost 2.4s ease-in-out infinite;
-    }
-
-    /* Stage Rush Pulse */
-    @keyframes stageRushPulse {
-      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 8px rgba(244,63,94,0.6)); }
-      50% { transform: scale(1.08); filter: drop-shadow(0 0 16px rgba(244,63,94,1)); }
-    }
-    .stage-badge-rush {
-      animation: stageRushPulse 1s ease-in-out infinite;
     }
 
     /* Pixel crisp rendering */
@@ -96,189 +89,215 @@
 <body class="w-full h-[100dvh] flex flex-col items-center justify-between text-amber-50 overflow-hidden">
 
   <!-- Top Navigation & Live Stats (Active during game) -->
-  <header id="gameHeader" class="w-full max-w-xl flex items-center justify-between px-2.5 sm:px-3 py-1.5 sm:py-2 bg-purple-950/85 backdrop-blur-md rounded-2xl border-2 border-purple-500/40 shadow-2xl z-10 shrink-0 hidden">
-    <!-- Character Avatar & Hearts -->
+  <header id="gameHeader" class="w-full max-w-xl flex items-center justify-between px-2.5 sm:px-3 py-1.5 bg-purple-950/90 backdrop-blur-md rounded-2xl border-2 border-purple-500/40 shadow-2xl z-20 shrink-0 hidden">
+    <!-- Character Avatar & Hearts & Stage -->
     <div class="flex items-center space-x-2">
-      <div class="relative w-10 h-10 bg-purple-900/80 rounded-xl border border-purple-400/50 flex items-center justify-center overflow-hidden">
+      <div class="relative w-10 h-10 bg-purple-900/80 rounded-xl border border-purple-400/50 flex items-center justify-center overflow-hidden shrink-0">
         <canvas id="hudAvatarCanvas" width="32" height="32" class="w-8 h-8"></canvas>
       </div>
       <div class="flex flex-col">
-        <div class="flex items-center space-x-1" id="heartsContainer">
+        <div class="flex items-center space-x-0.5" id="heartsContainer">
           <!-- Hearts rendered dynamically -->
         </div>
         <div class="flex items-center space-x-1.5 mt-0.5">
-          <span id="diffBadge" class="pixel-text text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">EASY</span>
-          <span id="stageBadge" class="pixel-text text-[9px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/50 stage-badge-rush hidden">STAGE 1</span>
+          <span id="gameModeBadge" class="pixel-text text-[9px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/50">ROGUELIKE</span>
+          <span id="stageBadge" class="pixel-text text-[9px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/50 font-bold">STAGE 1/20</span>
           <span id="comboBadge" class="pixel-text text-[9px] text-amber-300 hidden">COMBO x<span id="comboVal">0</span></span>
         </div>
       </div>
     </div>
 
-    <!-- Live Score & Timer -->
-    <div class="flex items-center space-x-2 sm:space-x-3">
+    <!-- Live Score & Timer / Stage Progress -->
+    <div class="flex items-center space-x-2">
       <div class="flex items-center space-x-1.5 bg-amber-500/20 px-2.5 py-1 rounded-xl border border-amber-500/40">
-        <!-- Colorful Candy SVG Icon (Guaranteed never black on any device) -->
-        <svg class="w-5 h-5 shrink-0 filter drop-shadow-[0_0_6px_rgba(251,191,36,0.8)]" viewBox="0 0 32 32" fill="none">
-          <!-- Left Wrapper Twist -->
+        <!-- Candy SVG icon -->
+        <svg class="w-4 h-4 shrink-0 filter drop-shadow-[0_0_5px_rgba(251,191,36,0.8)]" viewBox="0 0 32 32" fill="none">
           <path d="M4 11L10 16L4 21V11Z" fill="#ec4899" stroke="#be185d" stroke-width="1.5" stroke-linejoin="round"/>
-          <path d="M4 11L7 16L4 21" stroke="#fbcfe8" stroke-width="1"/>
-          <!-- Right Wrapper Twist -->
           <path d="M28 11L22 16L28 21V11Z" fill="#ec4899" stroke="#be185d" stroke-width="1.5" stroke-linejoin="round"/>
-          <path d="M28 11L25 16L28 21" stroke="#fbcfe8" stroke-width="1"/>
-          <!-- Candy Body -->
           <ellipse cx="16" cy="16" rx="8" ry="7" fill="#f43f5e" stroke="#9f1239" stroke-width="1.5"/>
-          <!-- Decorative Yellow & Purple Diagonal Stripes -->
           <path d="M12 11C13.5 12.5 14 19.5 15.5 21" stroke="#facc15" stroke-width="2.2" stroke-linecap="round"/>
-          <path d="M16.5 11C18 12.5 18.5 19.5 20 21" stroke="#a855f7" stroke-width="2.2" stroke-linecap="round"/>
-          <!-- Specular Gloss Highlight -->
-          <path d="M12 13C14 11.5 18 11.5 20 13" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round"/>
         </svg>
         <span id="scoreText" class="pixel-text text-xs sm:text-sm text-amber-300">0</span>
       </div>
-      <div id="timerContainer" class="flex items-center space-x-1 bg-indigo-500/20 px-2.5 py-1 rounded-xl border border-indigo-500/40 transition-colors duration-200">
-        <span id="timerIcon" class="text-base sm:text-lg">⏳</span>
+      <div id="timerContainer" class="flex items-center space-x-1 bg-indigo-500/20 px-2.5 py-1 rounded-xl border border-indigo-500/40">
+        <span id="timerIcon" class="text-sm sm:text-base">⏳</span>
         <span id="timerText" class="pixel-text text-xs sm:text-sm text-indigo-200">60</span>
       </div>
     </div>
 
     <!-- Controls buttons -->
     <div class="flex items-center space-x-1">
-      <button id="soundBtn" class="p-2 rounded-xl bg-purple-800/80 hover:bg-purple-700 active:scale-95 transition border border-purple-400/40" title="音效">
+      <button id="soundBtn" class="p-1.5 sm:p-2 rounded-xl bg-purple-800/80 hover:bg-purple-700 active:scale-95 transition border border-purple-400/40" title="音效">
         <span id="soundIcon">🔊</span>
       </button>
-      <button id="pauseBtn" class="p-2 rounded-xl bg-purple-800/80 hover:bg-purple-700 active:scale-95 transition border border-purple-400/40" title="暫停">
+      <button id="pauseBtn" class="p-1.5 sm:p-2 rounded-xl bg-purple-800/80 hover:bg-purple-700 active:scale-95 transition border border-purple-400/40" title="暫停">
         <span id="pauseIcon">⏸️</span>
       </button>
-      <button id="homeBtn" class="p-2 rounded-xl bg-purple-800/80 hover:bg-purple-700 active:scale-95 transition border border-purple-400/40" title="主選單">
+      <button id="homeBtn" class="p-1.5 sm:p-2 rounded-xl bg-purple-800/80 hover:bg-purple-700 active:scale-95 transition border border-purple-400/40" title="主選單">
         <span>🏠</span>
       </button>
     </div>
   </header>
 
-  <!-- Main Arcade Frame (加入 min-h-0 避免 iPhone 彈性溢出) -->
+  <!-- Main Arcade Frame -->
   <main class="relative w-full max-w-xl flex-1 min-h-0 flex flex-col items-center justify-center my-1 sm:my-2 overflow-hidden">
     <div class="crt-screen relative w-full h-full rounded-2xl sm:rounded-3xl overflow-hidden border-2 sm:border-4 border-purple-600/60 shadow-[0_0_35px_rgba(147,51,234,0.35)] bg-slate-950">
       
       <!-- In-Game Canvas -->
       <canvas id="gameCanvas" class="w-full h-full block"></canvas>
 
+      <!-- Boss Health Bar Container (For Roguelike Boss Stages) -->
+      <div id="bossBarContainer" class="absolute top-2 inset-x-4 sm:inset-x-8 z-10 hidden">
+        <div class="bg-black/75 backdrop-blur-md p-2 rounded-2xl border-2 border-rose-500 shadow-xl flex flex-col items-center">
+          <div class="flex justify-between w-full text-[10px] sm:text-xs pixel-text mb-1 px-1">
+            <span id="bossNameText" class="text-rose-400 font-bold">🎃 萬聖南瓜魔王</span>
+            <span id="bossHpText" class="text-amber-300">100%</span>
+          </div>
+          <div class="w-full h-3 bg-purple-950 rounded-full overflow-hidden border border-rose-400/50">
+            <div id="bossHpFill" class="h-full bg-gradient-to-r from-rose-600 via-orange-500 to-amber-400 transition-all duration-100" style="width: 100%;"></div>
+          </div>
+        </div>
+      </div>
+
       <!-- Dynamic Fever Aura Alert -->
       <div id="feverOverlay" class="absolute inset-0 pointer-events-none opacity-0 border-4 border-amber-400/80 shadow-[inset_0_0_30px_rgba(251,191,36,0.6)] transition-opacity duration-300 z-10"></div>
 
       <!-- Combo Alert Popup -->
-      <div id="comboBanner" class="absolute top-10 left-0 right-0 mx-auto w-max pointer-events-none opacity-0 transform -translate-y-4 scale-75 transition-all duration-300 pixel-text text-sm sm:text-xl text-yellow-300 drop-shadow-[0_0_10px_rgba(250,204,21,0.9)] text-center z-10">
-        SWEET! COMBO x5!
+      <div id="comboBanner" class="absolute top-10 left-0 right-0 mx-auto w-max pointer-events-none opacity-0 transform -translate-y-4 scale-75 transition-all duration-300 pixel-text text-xs sm:text-sm text-yellow-300 drop-shadow-[0_0_10px_rgba(250,204,21,0.9)] text-center z-10">
+        SWEET!
       </div>
 
-      <!-- Stage Clear Grand Celebration Banner (全透明無遮擋設計) -->
-      <div id="stageClearBanner" class="absolute inset-x-0 top-16 sm:top-20 mx-auto w-max pointer-events-none opacity-0 transform scale-75 transition-all duration-500 z-20 flex flex-col items-center text-center">
+      <!-- Stage Clear Grand Celebration Banner (全透明無遮擋) -->
+      <div id="stageClearBanner" class="absolute inset-x-0 top-14 sm:top-20 mx-auto w-max pointer-events-none opacity-0 transform scale-75 transition-all duration-500 z-20 flex flex-col items-center text-center">
         <div class="bg-transparent py-1 px-3 flex flex-col items-center space-y-1">
           <span class="text-3xl sm:text-4xl animate-bounce drop-shadow-[0_4px_10px_rgba(0,0,0,0.9)]">🎺👑🎉</span>
-          <div id="stageClearTitle" class="pixel-text text-xl sm:text-3xl text-amber-300 tracking-wider retro-title-shadow drop-shadow-[0_4px_12px_rgba(0,0,0,0.95)]">
+          <div id="stageClearTitle" class="pixel-text text-lg sm:text-2xl text-amber-300 tracking-wider retro-title-shadow drop-shadow-[0_4px_12px_rgba(0,0,0,0.95)]">
             STAGE 1 CLEAR!
           </div>
-          <div id="stageClearReward" class="pixel-text text-xs sm:text-sm text-emerald-300 font-bold drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
+          <div id="stageClearReward" class="pixel-text text-xs text-emerald-300 font-bold drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
             BONUS +200 PTS!
-          </div>
-          <div class="pixel-text text-[10px] text-pink-300 animate-pulse drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]">
-            ⚡ 難度飆升！NEXT STAGE 準備！ ⚡
           </div>
         </div>
       </div>
 
       <!-- ============================================== -->
-      <!-- SCREEN 1: 16-BIT SNES TITLE SCREEN (進入遊戲畫面) -->
+      <!-- SCREEN 1: 16-BIT SNES TITLE SCREEN (進入畫面)    -->
       <!-- ============================================== -->
       <div id="titleScreen" class="absolute inset-0 z-30 flex flex-col items-center justify-between p-4 sm:p-6 bg-gradient-to-b from-[#1c0836] via-[#2f0d4f] to-[#0f031e] text-center select-none cursor-pointer" onclick="handleTitleStart()">
-        <!-- Canvas Background Pixel Art (Moon, Castle, Bat) -->
+        <!-- Canvas Background Pixel Art (Moon, Castle, Stars) -->
         <canvas id="titleCanvas" class="absolute inset-0 w-full h-full pointer-events-none opacity-40"></canvas>
 
-        <!-- Top Arcade Header -->
         <div class="relative z-10 w-full flex justify-between items-center px-2 pt-1 text-purple-300/80 pixel-text text-[9px] sm:text-[10px]">
           <span>★ 16-BIT RETRO ★</span>
-          <span>HI-SCORE: <span id="titleHiScore">1200</span></span>
+          <span>HI-SCORE: <span id="titleHiScore">1500</span></span>
         </div>
 
-        <!-- Center Big Game Logo & Mascot -->
         <div class="relative z-10 flex flex-col items-center my-auto">
-          <!-- Animated Pixel MaoMao in Ghost Sheet Costume -->
           <div class="relative w-28 h-28 sm:w-32 sm:h-32 mb-3 animate-ghost-float">
             <canvas id="titleMaoMaoCanvas" width="64" height="64" class="w-full h-full"></canvas>
           </div>
 
-          <!-- Grand Game Title Logo -->
           <h1 class="text-3xl sm:text-4xl md:text-5xl font-black tracking-wider text-amber-300 retro-title-shadow mb-1 font-['Noto_Sans_TC']">
             茂茂接糖果派對
           </h1>
           <div class="pixel-text text-xs sm:text-sm text-pink-400 tracking-widest drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-            HALLOWEEN CANDY PARTY
+            HALLOWEEN CANDY BATTLE
           </div>
-          <div class="mt-2 inline-flex items-center gap-1.5 px-3 py-1 bg-rose-500/30 border border-rose-400/60 rounded-full pixel-text text-[9px] text-rose-300">
-            <span>🔥</span> HARD 15秒闖關狂潮已開放！
+          <div class="mt-2 inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/20 border border-amber-400/50 rounded-full pixel-text text-[9px] text-amber-200">
+            <span>🚀</span> 新增 Roguelike 彈幕射擊 20 關挑戰！
           </div>
         </div>
 
-        <!-- Flashing START text & Copyright -->
-        <div class="relative z-10 flex flex-col items-center space-y-4 mb-2">
+        <div class="relative z-10 flex flex-col items-center space-y-3 mb-2">
           <div class="press-start-anim pixel-text text-amber-300 text-xs sm:text-sm bg-purple-900/80 px-4 py-2 rounded-xl border-2 border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.6)]">
             ▶ PRESS START BUTTON ◀
           </div>
-          <p class="pixel-text text-[9px] sm:text-[10px] text-purple-300/80 tracking-wider">
+          <p class="pixel-text text-[9px] text-purple-300/80 tracking-wider">
             COPYRIGHT @ BGCA SMP 2026
           </p>
         </div>
       </div>
 
       <!-- ============================================== -->
-      <!-- SCREEN 2: MAIN MENU (進入後的 MENU)              -->
+      <!-- SCREEN 2: MAIN MENU (模式選擇 & 主功能)         -->
       <!-- ============================================== -->
-      <div id="menuScreen" class="absolute inset-0 z-20 flex flex-col items-center justify-center p-4 sm:p-6 bg-black/85 backdrop-blur-md hidden text-center">
-        <div class="w-full max-w-sm bg-gradient-to-b from-purple-950 via-slate-900 to-indigo-950 p-5 rounded-3xl border-2 border-amber-400/70 shadow-2xl space-y-3">
+      <div id="menuScreen" class="absolute inset-0 z-20 flex flex-col items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-md hidden text-center">
+        <div class="w-full max-w-sm bg-gradient-to-b from-purple-950 via-slate-900 to-indigo-950 p-4 sm:p-5 rounded-3xl border-2 border-amber-400/70 shadow-2xl space-y-3">
           
-          <div class="flex items-center justify-center gap-2 mb-1">
+          <div class="flex items-center justify-center gap-2">
             <span class="text-2xl">🎃</span>
-            <h2 class="text-2xl font-black text-amber-300 font-['Noto_Sans_TC']">派對遊戲選單</h2>
+            <h2 class="text-xl sm:text-2xl font-black text-amber-300 font-['Noto_Sans_TC']">冒險模式選擇</h2>
             <span class="text-2xl">👻</span>
           </div>
 
-          <p class="text-xs text-purple-200">請選擇功能或直接開始冒險：</p>
+          <p class="text-xs text-purple-200">請挑選你喜歡的派對冒險：</p>
 
-          <!-- Menu Options -->
-          <div class="space-y-2.5 pt-1">
-            <button onclick="startGameDirectly()" class="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 active:scale-95 transition font-black text-slate-950 flex items-center justify-center gap-2 shadow-lg border-2 border-yellow-300">
-              <span class="text-xl">🚀</span>
-              <span class="pixel-text text-xs">開始遊戲 (START)</span>
+          <!-- Mode Buttons -->
+          <div class="space-y-2 pt-1 text-left">
+            <!-- Mode 1: Roguelike Shoot 'Em Up (茂茂派糖大挑戰) -->
+            <button onclick="startRoguelikeGame()" class="w-full p-3 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 active:scale-95 transition text-slate-950 shadow-lg border-2 border-yellow-300 flex items-center justify-between">
+              <div>
+                <div class="flex items-center gap-1.5 font-black text-sm">
+                  <span>🚀 茂茂派糖大挑戰 (Roguelike)</span>
+                  <span class="px-1.5 py-0.2 text-[8px] bg-red-600 text-white font-bold rounded">NEW</span>
+                </div>
+                <div class="text-[10px] text-slate-900/85 mt-0.5 font-bold">飛機彈幕射擊・20關闖關・2選1技能進化・Boss戰！</div>
+              </div>
+              <span class="text-2xl">🍬</span>
             </button>
 
-            <button onclick="showDifficultyModal()" class="w-full py-2.5 px-4 rounded-2xl bg-purple-900/80 hover:bg-purple-800 active:scale-95 transition font-bold text-amber-200 flex items-center justify-between shadow border border-purple-400/50">
-              <div class="flex items-center gap-2">
-                <span>⚙️</span>
-                <span class="text-sm font-black">難度選擇</span>
+            <!-- Mode 2: Classic Candy Catch (經典接糖果) -->
+            <button onclick="startClassicGame()" class="w-full p-3 rounded-2xl bg-purple-900/80 hover:bg-purple-800 active:scale-95 transition text-purple-100 shadow border border-purple-400/50 flex items-center justify-between">
+              <div>
+                <div class="font-black text-amber-300 text-sm">🍭 經典接糖果派對</div>
+                <div class="text-[10px] text-purple-200/80 mt-0.5">左右滑動接糖・躲避怪物・15秒極限狂潮！</div>
               </div>
-              <span id="currentDiffDisplay" class="pixel-text text-[10px] text-emerald-300 px-2 py-0.5 rounded bg-black/40">EASY</span>
-            </button>
-
-            <button onclick="showHowToPlayModal()" class="w-full py-2.5 px-4 rounded-2xl bg-purple-900/80 hover:bg-purple-800 active:scale-95 transition font-bold text-purple-200 flex items-center justify-between shadow border border-purple-400/50">
-              <div class="flex items-center gap-2">
-                <span>📖</span>
-                <span class="text-sm font-black">遊戲玩法說明</span>
-              </div>
-              <span class="text-xs text-purple-400">INFO ▶</span>
-            </button>
-
-            <button onclick="showLeaderboardModal()" class="w-full py-2.5 px-4 rounded-2xl bg-purple-900/80 hover:bg-purple-800 active:scale-95 transition font-bold text-amber-200 flex items-center justify-between shadow border border-purple-400/50">
-              <div class="flex items-center gap-2">
-                <span>🏆</span>
-                <span class="text-sm font-black">英雄排行榜</span>
-              </div>
-              <span class="pixel-text text-[10px] text-amber-400">TOP 5 ▶</span>
+              <span class="text-xl">🧺</span>
             </button>
           </div>
 
-          <div class="pt-2">
-            <button onclick="returnToTitleScreen()" class="text-xs text-purple-400 hover:text-purple-200 pixel-text">
+          <!-- Secondary Options -->
+          <div class="grid grid-cols-3 gap-2 pt-2">
+            <button onclick="showDifficultyModal()" class="py-2 px-2 rounded-xl bg-purple-900/60 hover:bg-purple-800 active:scale-95 transition text-[11px] font-bold text-amber-200 border border-purple-400/40">
+              ⚙️ 難度設定
+            </button>
+            <button onclick="showHowToPlayModal()" class="py-2 px-2 rounded-xl bg-purple-900/60 hover:bg-purple-800 active:scale-95 transition text-[11px] font-bold text-purple-200 border border-purple-400/40">
+              📖 玩法說明
+            </button>
+            <button onclick="showLeaderboardModal()" class="py-2 px-2 rounded-xl bg-purple-900/60 hover:bg-purple-800 active:scale-95 transition text-[11px] font-bold text-amber-300 border border-purple-400/40">
+              🏆 英雄榜
+            </button>
+          </div>
+
+          <div class="pt-1">
+            <button onclick="returnToTitleScreen()" class="text-[11px] text-purple-400 hover:text-purple-200 pixel-text">
               ◀ BACK TO TITLE
             </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================== -->
+      <!-- MODAL: ROGUELIKE 2選1 天賦選擇 (TALENT CHOICE)   -->
+      <!-- ============================================== -->
+      <div id="talentModal" class="absolute inset-0 z-40 flex items-center justify-center p-3 sm:p-4 bg-black/90 backdrop-blur-md hidden text-center">
+        <div class="w-full max-w-sm bg-gradient-to-b from-purple-950 to-slate-900 p-4 sm:p-5 rounded-3xl border-2 border-amber-400 shadow-2xl space-y-3">
+          
+          <div>
+            <div class="text-2xl animate-bounce mb-1">🎁✨</div>
+            <h3 class="text-lg sm:text-xl font-black text-amber-300 font-['Noto_Sans_TC']">
+              關卡突破！獲得天賦獎勵
+            </h3>
+            <p class="text-[11px] text-purple-200">請挑選 1 項糖果魔法強化茂茂：</p>
+          </div>
+
+          <!-- 2 Talent Cards -->
+          <div class="space-y-2.5 pt-1" id="talentOptionsContainer">
+            <!-- Dynamically populated via JS -->
+          </div>
+
+          <div class="text-[9px] text-purple-400 pixel-text pt-1">
+            STAGE ADVANCE BONUS
           </div>
         </div>
       </div>
@@ -297,7 +316,7 @@
             <button onclick="setDifficulty('easy')" class="w-full p-3 rounded-2xl bg-emerald-950/70 hover:bg-emerald-900/80 border-2 border-emerald-500/60 active:scale-95 transition flex items-center justify-between">
               <div>
                 <div class="font-black text-emerald-300 text-sm">簡單模式 (Easy)</div>
-                <div class="text-[11px] text-emerald-100/70">5 顆心・速度慢・極少怪物・60秒計時</div>
+                <div class="text-[11px] text-emerald-100/70">5 顆心・敵方彈幕緩慢・經典接糖怪物稀少</div>
               </div>
               <span class="text-xl">🌱</span>
             </button>
@@ -305,7 +324,7 @@
             <button onclick="setDifficulty('medium')" class="w-full p-3 rounded-2xl bg-amber-950/70 hover:bg-amber-900/80 border-2 border-amber-500/60 active:scale-95 transition flex items-center justify-between">
               <div>
                 <div class="font-black text-amber-300 text-sm">普通模式 (Normal)</div>
-                <div class="text-[11px] text-amber-100/70">3 顆心・標準速度・推薦 COMBO・60秒計時</div>
+                <div class="text-[11px] text-amber-100/70">3 顆心・標準速度・推薦挑戰</div>
               </div>
               <span class="text-xl">🎃</span>
             </button>
@@ -313,10 +332,10 @@
             <button onclick="setDifficulty('hard')" class="w-full p-3 rounded-2xl bg-rose-950/80 hover:bg-rose-900/90 border-2 border-rose-500 active:scale-95 transition flex items-center justify-between shadow-[0_0_15px_rgba(244,63,94,0.4)]">
               <div>
                 <div class="flex items-center gap-1.5 font-black text-rose-300 text-sm">
-                  <span>困難模式 (15s 極限闖關)</span>
+                  <span>困難模式 (Hard / 15s狂潮)</span>
                   <span class="px-1.5 py-0.5 text-[9px] bg-rose-500 text-white rounded font-bold">HOT</span>
                 </div>
-                <div class="text-[11px] text-rose-100/80">每關 15 秒限時・闖關遞增・狂飆加速與怪物潮！</div>
+                <div class="text-[11px] text-rose-100/80">彈幕密集狂暴・怪物蛇行激進・極限考驗！</div>
               </div>
               <span class="text-xl animate-pulse">🦇</span>
             </button>
@@ -325,70 +344,68 @@
       </div>
 
       <!-- ============================================== -->
-      <!-- MODAL B: 遊戲玩法 (HOW TO PLAY)                 -->
+      <!-- MODAL B: 遊戲玩法說明 (HOW TO PLAY)             -->
       <!-- ============================================== -->
-      <div id="howModal" class="absolute inset-0 z-40 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md hidden text-left">
-        <div class="w-full max-w-sm bg-purple-950 p-5 rounded-3xl border-2 border-purple-400 shadow-2xl space-y-3 max-h-[90%] overflow-y-auto">
+      <div id="howModal" class="absolute inset-0 z-40 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md hidden text-left">
+        <div class="w-full max-w-sm bg-purple-950 p-4 sm:p-5 rounded-3xl border-2 border-purple-400 shadow-2xl space-y-3 max-h-[90%] overflow-y-auto">
           <div class="flex justify-between items-center">
-            <h3 class="text-lg font-black text-amber-300">📖 遊戲玩法說明</h3>
+            <h3 class="text-base sm:text-lg font-black text-amber-300">📖 遊戲玩法說明</h3>
             <button onclick="closeHowModal()" class="text-purple-300 hover:text-white text-lg">✕</button>
           </div>
 
-          <div class="space-y-3 text-xs text-purple-200">
-            <div class="bg-rose-950/70 p-3 rounded-2xl border border-rose-500/50">
-              <div class="font-bold text-rose-300 mb-1 flex items-center gap-1">
-                <span>🔥</span> 困難模式「15 秒闖關極限狂潮」：
+          <div class="space-y-2.5 text-xs text-purple-200">
+            <div class="bg-amber-950/70 p-3 rounded-2xl border border-amber-500/50">
+              <div class="font-bold text-amber-300 mb-1 flex items-center gap-1">
+                <span>🚀</span> 模式一：「茂茂派糖大挑戰」(Roguelike 彈幕射擊)
               </div>
-              <p>・<b>每關 15 秒倒數</b>：時間歸零即發出通關號角，自動晉級下一關（STAGE 1 ➜ 2 ➜ 3...）並豪取通關大獎分！<br>
-                 ・<b>難度動態狂飆</b>：每晉升一關，糖果與障礙下落速度暴增、密集度提升，萬聖怪物比例從 38% 飆升至 68%，且怪物蛇行飄移幅度更大！</p>
+              <p>・<b>操作</b>：觸控螢幕拖曳茂茂在全場自由移動，茂茂會<b>自動向上發射糖果彈幕</b>！電腦端可按 <kbd class="px-1 bg-black rounded text-amber-300 font-bold">W</kbd><kbd class="px-1 bg-black rounded text-amber-300 font-bold">A</kbd><kbd class="px-1 bg-black rounded text-amber-300 font-bold">S</kbd><kbd class="px-1 bg-black rounded text-amber-300 font-bold">D</kbd> 或方向鍵。<br>
+                 ・<b>20 關挑戰與天賦 2 選 1</b>：消滅全場怪物即可過關並彈出 2 選 1 天賦升級（如：多重射擊、追蹤彩虹星、爆破甜甜圈、旋轉護盾等）！<br>
+                 ・<b>Boss 史詩戰</b>：第 5、10、15、20 關會出現擁有專屬血條的萬聖 Boss，考驗走位避開彈幕！<br>
+                 ・<b>4 階造型進化</b>：隨著關卡深入，茂茂會從原味恐龍進化為幽靈斗篷、魔導大師，直到終極黃金神聖天王！</p>
             </div>
 
             <div class="bg-purple-900/60 p-3 rounded-2xl border border-purple-500/30">
-              <div class="font-bold text-emerald-300 mb-1">🎮 操作方式：</div>
-              <p>・<b>手機/平板</b>：手指在螢幕上左右滑動即可移動茂茂。<br>・<b>電腦端</b>：按鍵盤 <kbd class="px-1 bg-black rounded text-amber-300 font-bold">A</kbd> <kbd class="px-1 bg-black rounded text-amber-300 font-bold">D</kbd> 或 <kbd class="px-1 bg-black rounded text-amber-300 font-bold">←</kbd> <kbd class="px-1 bg-black rounded text-amber-300 font-bold">→</kbd> 方向鍵，亦可滑鼠拖曳。</p>
-            </div>
-
-            <div class="bg-emerald-950/60 p-3 rounded-2xl border border-emerald-500/30">
-              <div class="font-bold text-emerald-300 mb-1">🍬 得分糖果 (盡情接取)：</div>
-              <div class="grid grid-cols-2 gap-1 text-[11px]">
-                <span>🍭 棒棒糖 (+10分)</span>
-                <span>🍬 軟糖 (+15分)</span>
-                <span>🍫 巧克力 (+20分)</span>
-                <span>🍩 甜甜圈 (+25分)</span>
+              <div class="font-bold text-emerald-300 mb-1 flex items-center gap-1">
+                <span>🧺</span> 模式二：「經典接糖果派對」
               </div>
-              <div class="mt-1 text-amber-300 font-bold">⭐ 彩虹星星：+50分 並且大幅提升 Combo！</div>
-              <div class="mt-1 text-rose-300 font-bold">💖 稀有回血愛心：闖關時機率空降，接住回復 1 顆愛心！</div>
-            </div>
-
-            <div class="bg-rose-950/60 p-3 rounded-2xl border border-rose-500/30">
-              <div class="font-bold text-rose-300 mb-1">⚠️ 萬聖怪物 (紅圈警示！務必躲開)：</div>
-              <p>🧟 殭屍、🧛 吸血鬼、💀 骷髏、🧙‍♀️ 女巫<br>撞到會扣除 1 顆愛心並中斷連續 Combo！</p>
+              <p>・<b>操作</b>：左右滑動接取甜美糖果（棒棒糖、軟糖、巧克力、甜甜圈、彩虹星星），避開扣血的萬聖怪物！<br>
+                 ・<b>困難模式 15 秒闖關</b>：每 15 秒鳴響通關號角，怪物比例與下墜速度直線飆升，並機率空降回復心心！</p>
             </div>
           </div>
 
           <button onclick="closeHowModal()" class="w-full py-2.5 rounded-xl bg-orange-500 hover:bg-orange-400 font-black text-white text-xs">
-            我懂了，準備出發！
+            明白了，出發冒險！
           </button>
         </div>
       </div>
 
       <!-- ============================================== -->
-      <!-- MODAL C: 排行榜 (LEADERBOARD)                   -->
+      <!-- MODAL C: 雙榜英雄排行榜 (LEADERBOARD)          -->
       <!-- ============================================== -->
-      <div id="leaderboardModal" class="absolute inset-0 z-40 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md hidden text-center">
-        <div class="w-full max-w-sm bg-purple-950 p-5 rounded-3xl border-2 border-amber-400 shadow-2xl space-y-3">
+      <div id="leaderboardModal" class="absolute inset-0 z-40 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md hidden text-center">
+        <div class="w-full max-w-sm bg-purple-950 p-4 sm:p-5 rounded-3xl border-2 border-amber-400 shadow-2xl space-y-3">
           <div class="flex justify-between items-center">
-            <h3 class="text-lg font-black text-amber-300 flex items-center gap-1">
+            <h3 class="text-base sm:text-lg font-black text-amber-300 flex items-center gap-1">
               🏆 萬聖英雄排行榜
             </h3>
             <button onclick="closeLeaderboardModal()" class="text-purple-300 hover:text-white text-lg">✕</button>
           </div>
 
-          <div class="space-y-1.5 text-xs" id="leaderboardList">
+          <!-- Dual Tab Switcher -->
+          <div class="flex rounded-xl bg-black/50 p-1 border border-purple-500/40 text-[10px] font-bold">
+            <button id="lbTabRogue" onclick="switchLbTab('roguelike')" class="flex-1 py-1.5 rounded-lg bg-amber-500 text-slate-950 transition">
+              🚀 派糖大挑戰
+            </button>
+            <button id="lbTabClassic" onclick="switchLbTab('classic')" class="flex-1 py-1.5 rounded-lg text-purple-300 hover:text-white transition">
+              🧺 經典接糖果
+            </button>
+          </div>
+
+          <div class="space-y-1.5 text-xs min-h-[160px]" id="leaderboardList">
             <!-- Populated via JavaScript -->
           </div>
 
-          <div class="pt-2">
+          <div class="pt-1">
             <button onclick="closeLeaderboardModal()" class="w-full py-2.5 rounded-xl bg-purple-800 hover:bg-purple-700 font-bold text-purple-100 text-xs">
               返回選單
             </button>
@@ -397,51 +414,54 @@
       </div>
 
       <!-- ============================================== -->
-      <!-- SCREEN 3: GAME OVER / STAGE CLEAR 結算畫面       -->
+      <!-- SCREEN 3: GAME OVER / VICTORY 結算畫面          -->
       <!-- ============================================== -->
-      <div id="endModal" class="absolute inset-0 z-30 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md hidden text-center">
-        <div class="w-full max-w-sm bg-gradient-to-b from-purple-900 to-indigo-950 border-2 border-amber-400 p-6 rounded-3xl shadow-2xl">
-          <div id="endEmoji" class="text-5xl mb-2 animate-bounce">🏆🍬</div>
-          <h2 id="endTitle" class="text-2xl font-black text-amber-300 mb-1 font-['Noto_Sans_TC']">派對圓滿結束！</h2>
-          <p id="endSubtitle" class="text-xs text-purple-200 mb-4">茂茂裝了滿滿一袋甜甜萬聖糖果！</p>
+      <div id="endModal" class="absolute inset-0 z-30 flex items-center justify-center p-3 sm:p-4 bg-black/90 backdrop-blur-md hidden text-center">
+        <div class="w-full max-w-sm bg-gradient-to-b from-purple-900 to-indigo-950 border-2 border-amber-400 p-5 rounded-3xl shadow-2xl">
+          <div id="endEmoji" class="text-4xl sm:text-5xl mb-1 animate-bounce">🏆🍬</div>
+          <h2 id="endTitle" class="text-xl sm:text-2xl font-black text-amber-300 mb-0.5 font-['Noto_Sans_TC']">冒險圓滿通關！</h2>
+          <p id="endSubtitle" class="text-xs text-purple-200 mb-3">茂茂成功派發萬聖糖果，大顯神威！</p>
 
-          <div class="bg-purple-950/80 rounded-2xl p-4 border border-purple-500/30 text-sm mb-4 space-y-2 text-left">
+          <div class="bg-purple-950/80 rounded-2xl p-3.5 border border-purple-500/30 text-xs sm:text-sm mb-3 space-y-1.5 text-left">
             <div class="flex justify-between">
-              <span class="text-purple-300">本次得分：</span>
-              <span id="finalScore" class="pixel-text text-amber-300 text-sm">0</span>
-            </div>
-            <!-- 特別標註困難模式堅持關卡 -->
-            <div id="finalStageRow" class="flex justify-between">
-              <span class="text-purple-300">極限堅持關卡：</span>
-              <span id="finalStageText" class="pixel-text text-rose-400 font-bold text-xs">STAGE 1</span>
+              <span class="text-purple-300">遊戲模式：</span>
+              <span id="finalModeText" class="font-bold text-amber-300">茂茂派糖大挑戰</span>
             </div>
             <div class="flex justify-between">
-              <span class="text-purple-300">最高 COMBO：</span>
-              <span id="finalMaxCombo" class="pixel-text text-pink-400 text-sm">0</span>
+              <span class="text-purple-300">最終得分：</span>
+              <span id="finalScore" class="pixel-text text-amber-300">0</span>
+            </div>
+            <div class="flex justify-between" id="finalStageRow">
+              <span class="text-purple-300">堅持關卡：</span>
+              <span id="finalStageText" class="pixel-text text-rose-400 font-bold">STAGE 1</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-purple-300">最高連擊 / 擊殺：</span>
+              <span id="finalMaxCombo" class="pixel-text text-pink-400">0</span>
             </div>
             <div class="flex justify-between">
               <span class="text-purple-300">榮獲稱號：</span>
-              <span id="finalHonor" class="font-bold text-emerald-300 text-xs">萬聖小幽靈茂茂</span>
+              <span id="finalHonor" class="font-bold text-emerald-300 text-[11px]">萬聖糖果冒險家</span>
             </div>
           </div>
 
-          <!-- High score saving input -->
-          <div id="recordInputSection" class="mb-4">
-            <label class="block text-[11px] text-purple-300 mb-1">登錄英雄排行榜名字 (英數)：</label>
+          <!-- Leaderboard record input -->
+          <div id="recordInputSection" class="mb-3">
+            <label class="block text-[10px] text-purple-300 mb-1">登錄英雄排行榜名字 (英數)：</label>
             <div class="flex gap-2">
-              <input id="playerNameInput" type="text" maxlength="6" value="MAO" class="pixel-text w-full px-3 py-2 bg-black/60 border border-purple-400 rounded-xl text-center text-amber-300 uppercase text-xs focus:outline-none focus:border-amber-400">
-              <button onclick="saveScoreRecord()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-xs text-white shrink-0">
+              <input id="playerNameInput" type="text" maxlength="6" value="MAO" class="pixel-text w-full px-3 py-1.5 bg-black/60 border border-purple-400 rounded-xl text-center text-amber-300 uppercase text-xs focus:outline-none focus:border-amber-400">
+              <button onclick="saveScoreRecord()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-xs text-white shrink-0">
                 保存
               </button>
             </div>
           </div>
 
           <div class="flex space-x-2">
-            <button onclick="restartGame()" class="flex-1 py-3 rounded-2xl bg-orange-500 hover:bg-orange-400 active:scale-95 transition font-black text-white text-xs shadow-lg border border-orange-300/40">
+            <button onclick="restartGame()" class="flex-1 py-2.5 rounded-2xl bg-orange-500 hover:bg-orange-400 active:scale-95 transition font-black text-white text-xs shadow-lg border border-orange-300/40">
               🔄 再玩一次
             </button>
-            <button onclick="openMenuFromGame()" class="flex-1 py-3 rounded-2xl bg-purple-700 hover:bg-purple-600 active:scale-95 transition font-bold text-purple-100 text-xs shadow-lg border border-purple-400/40">
-              ⚙️ 主選單
+            <button onclick="openMenuFromGame()" class="flex-1 py-2.5 rounded-2xl bg-purple-700 hover:bg-purple-600 active:scale-95 transition font-bold text-purple-100 text-xs shadow-lg border border-purple-400/40">
+              ⚙️️ 主選單
             </button>
           </div>
         </div>
@@ -450,13 +470,14 @@
     </div>
   </main>
 
-  <!-- Footer copyright & instructions -->
+  <!-- Footer Instructions & Copyright -->
   <footer class="w-full max-w-xl flex justify-between items-center text-[9px] sm:text-xs text-purple-300/80 px-2 py-0.5 shrink-0">
     <div class="flex items-center space-x-1">
-      <span>觸控拖曳 或 鍵盤</span>
+      <span>觸控拖曳移動 / 鍵盤</span>
+      <kbd class="px-1 py-0.2 rounded bg-purple-900 border border-purple-500/40 text-amber-300 font-bold">W</kbd>
       <kbd class="px-1 py-0.2 rounded bg-purple-900 border border-purple-500/40 text-amber-300 font-bold">A</kbd>
+      <kbd class="px-1 py-0.2 rounded bg-purple-900 border border-purple-500/40 text-amber-300 font-bold">S</kbd>
       <kbd class="px-1 py-0.2 rounded bg-purple-900 border border-purple-500/40 text-amber-300 font-bold">D</kbd>
-      <span>/ 方向鍵</span>
     </div>
     <div class="font-bold text-amber-400">COPYRIGHT @ BGCA SMP 2026</div>
   </footer>
@@ -469,7 +490,6 @@
       constructor() {
         this.ctx = null;
         this.muted = false;
-        // Pentatonic scale frequencies for progressive combo chimes
         this.scalePitches = [
           523.25, 587.33, 659.25, 783.99, 880.00,
           1046.50, 1174.66, 1318.51, 1567.98, 1760.00,
@@ -478,19 +498,24 @@
       }
 
       init() {
-        if (!this.ctx) {
-          const AudioContext = window.AudioContext || window.webkitAudioContext;
-          this.ctx = new AudioContext();
-        }
-        if (this.ctx && this.ctx.state === 'suspended') {
-          this.ctx.resume();
-        }
+        try {
+          if (!this.ctx) {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (AudioContext) {
+              this.ctx = new AudioContext();
+            }
+          }
+          if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume();
+          }
+        } catch (e) {}
       }
 
       playTone(freq, type = 'square', duration = 0.1, gainVal = 0.1) {
         if (this.muted) return;
         try {
           this.init();
+          if (!this.ctx) return;
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
           osc.type = type;
@@ -507,128 +532,107 @@
       }
 
       playCoin() {
-        if (this.muted) return;
         this.playTone(987.77, 'square', 0.08, 0.12);
         setTimeout(() => this.playTone(1318.51, 'square', 0.28, 0.15), 65);
       }
 
       playMenuClick() {
-        if (this.muted) return;
         this.playTone(659.25, 'triangle', 0.06, 0.1);
+      }
+
+      playShoot() {
+        if (this.muted) return;
+        // Crisp laser blip
+        this.playTone(880 + Math.random() * 200, 'square', 0.05, 0.06);
+      }
+
+      playEnemyHit() {
+        if (this.muted) return;
+        this.playTone(320, 'triangle', 0.05, 0.08);
+      }
+
+      playEnemyExplode() {
+        if (this.muted) return;
+        this.playTone(180, 'sawtooth', 0.12, 0.12);
+        setTimeout(() => this.playTone(90, 'sawtooth', 0.15, 0.14), 40);
       }
 
       playCandyCatch(comboCount) {
         if (this.muted) return;
-        this.init();
         const pIndex = Math.min(comboCount, this.scalePitches.length - 1);
         const freq = this.scalePitches[pIndex];
-
-        this.playTone(freq, 'square', 0.12, 0.12);
-        setTimeout(() => {
-          this.playTone(freq * 1.5, 'triangle', 0.1, 0.08);
-        }, 35);
-
-        if (comboCount >= 10 && comboCount % 5 === 0) {
-          setTimeout(() => {
-            this.playTone(freq * 2, 'sine', 0.22, 0.14);
-          }, 80);
-        }
+        this.playTone(freq, 'square', 0.1, 0.1);
+        setTimeout(() => this.playTone(freq * 1.5, 'triangle', 0.08, 0.06), 35);
       }
 
       playStarCatch() {
         if (this.muted) return;
-        [659.25, 880, 1046.5, 1318.51, 1567.98].forEach((f, idx) => {
-          setTimeout(() => this.playTone(f, 'square', 0.15, 0.1), idx * 45);
+        [659.25, 880, 1046.5, 1318.51].forEach((f, idx) => {
+          setTimeout(() => this.playTone(f, 'square', 0.12, 0.09), idx * 40);
         });
       }
 
       playHurt() {
         if (this.muted) return;
-        this.playTone(200, 'sawtooth', 0.18, 0.18);
-        setTimeout(() => this.playTone(120, 'sawtooth', 0.22, 0.14), 60);
+        this.playTone(220, 'sawtooth', 0.16, 0.16);
+        setTimeout(() => this.playTone(110, 'sawtooth', 0.2, 0.14), 50);
       }
 
       playFeverFanfare() {
         if (this.muted) return;
         [523.25, 659.25, 783.99, 1046.5].forEach((freq, idx) => {
-          setTimeout(() => this.playTone(freq, 'square', 0.18, 0.12), idx * 60);
+          setTimeout(() => this.playTone(freq, 'square', 0.16, 0.1), idx * 55);
         });
       }
 
       playHeal() {
         if (this.muted) return;
-        // Warm rising magical arpeggio for HP recovery
         [440, 554.37, 659.25, 880].forEach((freq, idx) => {
-          setTimeout(() => this.playTone(freq, 'sine', 0.18, 0.15), idx * 60);
+          setTimeout(() => this.playTone(freq, 'sine', 0.16, 0.12), idx * 50);
         });
       }
 
-      /* Arcade Stage Clear Horn Fanfare (通關號角) */
       playStageClearHorn() {
         if (this.muted) return;
-        // Brass / Horn triad flourish: C5 -> E5 -> G5 -> C6 (held)
         const notes = [
           { f: 523.25, t: 'sawtooth', d: 0.12, delay: 0 },
-          { f: 659.25, t: 'sawtooth', d: 0.12, delay: 100 },
-          { f: 783.99, t: 'sawtooth', d: 0.14, delay: 200 },
-          { f: 1046.50, t: 'square', d: 0.45, delay: 320 },
-          { f: 1318.51, t: 'triangle', d: 0.40, delay: 450 }
+          { f: 659.25, t: 'sawtooth', d: 0.12, delay: 90 },
+          { f: 783.99, t: 'sawtooth', d: 0.14, delay: 180 },
+          { f: 1046.50, t: 'square', d: 0.35, delay: 280 },
+          { f: 1318.51, t: 'triangle', d: 0.40, delay: 400 }
         ];
-        notes.forEach(n => {
-          setTimeout(() => this.playTone(n.f, n.t, n.d, 0.18), n.delay);
+        notes.forEach(n => setTimeout(() => this.playTone(n.f, n.t, n.d, 0.16), n.delay));
+      }
+
+      playTalentSelect() {
+        if (this.muted) return;
+        [659.25, 783.99, 1046.5, 1318.51, 1567.98].forEach((f, i) => {
+          setTimeout(() => this.playTone(f, 'sine', 0.18, 0.12), i * 45);
         });
       }
 
       playVictory() {
         if (this.muted) return;
-        [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, i) => {
-          setTimeout(() => this.playTone(f, 'triangle', 0.25, 0.14), i * 90);
+        [523.25, 659.25, 783.99, 1046.5, 1318.5, 1567.98].forEach((f, i) => {
+          setTimeout(() => this.playTone(f, 'triangle', 0.22, 0.13), i * 80);
         });
       }
     }
     const sound = new RetroAudioEngine();
 
     /* =========================================================
-       GAME CONFIGURATION & CONSTANTS
+       GAME STATE & CONFIGURATION
        ========================================================= */
-    const DIFFICULTIES = {
-      easy: {
-        id: 'easy',
-        name: '簡單 (EASY)',
-        maxHearts: 5,
-        fallSpeedMin: 2.2,
-        fallSpeedMax: 3.4,
-        spawnInterval: 48,
-        hazardChance: 0.14,
-        timeLimit: 60
-      },
-      medium: {
-        id: 'medium',
-        name: '普通 (NORMAL)',
-        maxHearts: 3,
-        fallSpeedMin: 3.2,
-        fallSpeedMax: 5.0,
-        spawnInterval: 35,
-        hazardChance: 0.28,
-        timeLimit: 60
-      },
-      hard: {
-        id: 'hard',
-        name: '困難 (15秒闖關)',
-        maxHearts: 3,
-        // Base starting parameters for Stage 1 in Hard Mode
-        fallSpeedMin: 4.6,
-        fallSpeedMax: 7.2,
-        spawnInterval: 24,
-        hazardChance: 0.38, // Starts at 38%
-        timeLimit: 15        // 15 seconds per stage
-      }
+    const GAME_MODES = {
+      ROGUELIKE: 'roguelike',
+      CLASSIC: 'classic'
     };
 
-    let curDiff = 'easy';
-    let currentStage = 1; // Current stage for HARD mode
+    let activeGameMode = GAME_MODES.ROGUELIKE;
+    let curDiff = 'medium';
     let isPlaying = false;
     let isPaused = false;
+    let isTalentSelecting = false;
     let score = 0;
     let hearts = 3;
     let maxHearts = 3;
@@ -637,44 +641,111 @@
     let timeLeft = 60;
     let timerTimer = null;
     let spawnTimer = 0;
+    let shootTimer = 0;
 
-    // Leaderboard state persisted in localStorage
-    const DEFAULT_LEADERBOARD = [
+    // Roguelike STG State
+    let rogueStage = 1;
+    const MAX_ROGUE_STAGES = 20;
+    let stageEnemiesLeft = 0;
+    let bossActive = null;
+
+    // MaoMao Roguelike Talents & Build
+    const playerTalents = {
+      multiShot: 1,           // 1 to 5 bullet streams
+      attackSpeed: 1,         // Rate of fire multiplier
+      penetrateLollipop: 0,   // Chance to fire giant piercing lollipop
+      explosiveDonut: 0,      // Bullets explode on impact
+      homingStar: 0,          // Chance to spawn homing stars
+      chocolateShield: 0,     // Rotating chocolate barriers orbiting player
+      frostPeppermint: 0,     // Slows enemies on hit
+      caramelCrit: 0,         // Crit chance
+      maxHpBoost: 0           // Additional hearts
+    };
+
+    // Leaderboards for both modes stored in localStorage
+    const DEFAULT_LB_ROGUE = [
+      { name: 'SMP_CHAMP', score: 4850, stage: 'STAGE 20 (CLEAR)' },
+      { name: 'BGCA_STAR', score: 3200, stage: 'STAGE 16' },
+      { name: 'MAOMAO', score: 2150, stage: 'STAGE 12' },
+      { name: 'CANDY_BOY', score: 1400, stage: 'STAGE 8' },
+      { name: 'GHOST_PUM', score: 750, stage: 'STAGE 4' }
+    ];
+    const DEFAULT_LB_CLASSIC = [
       { name: 'SMP_CHAMP', score: 1850, diff: 'HARD-S5' },
       { name: 'BGCA_STAR', score: 1200, diff: 'HARD-S3' },
       { name: 'MAOMAO', score: 850, diff: 'NORM' },
       { name: 'CANDY_BOY', score: 560, diff: 'EASY' },
       { name: 'GHOST_PUM', score: 390, diff: 'NORM' }
     ];
-    let leaderboard = JSON.parse(localStorage.getItem('maomao_snes_leaderboard')) || DEFAULT_LEADERBOARD;
 
-    // MaoMao Player Object
+    let lbRogue = JSON.parse(localStorage.getItem('maomao_rogue_lb')) || DEFAULT_LB_ROGUE;
+    let lbClassic = JSON.parse(localStorage.getItem('maomao_classic_lb')) || DEFAULT_LB_CLASSIC;
+    let activeLbTab = 'roguelike';
+
+    // Player Object
     const player = {
       x: 0,
       y: 0,
       targetX: 0,
-      width: 90,
-      height: 90,
-      speed: 16,
+      targetY: 0,
+      width: 76,
+      height: 76,
+      speed: 7,
       invulnerableTimer: 0,
       squash: 1,
-      mouthOpen: 0,
-      cheerTimer: 0
+      cheerTimer: 0,
+      shieldAngle: 0
     };
 
-    let items = [];
+    // Entities Arrays
+    let playerBullets = [];
+    let enemies = [];
+    let enemyBullets = [];
+    let items = []; // For Classic mode
     let particles = [];
     let backgroundLights = [];
-    const keys = { Left: false, Right: false };
+    const keys = { Left: false, Right: false, Up: false, Down: false };
 
-    // Canvas references
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
+    // Canvas & Context
+    let canvas, ctx;
     let cw = 400;
     let ch = 600;
 
-    // 24 x 24 Pixel Map for MaoMao wearing Little Ghost Costume
-    const MAOMAO_GHOST_PIXEL_MAP = [
+    /* =========================================================
+       MAOMAO 4-TIER EVOLUTION PIXEL MAPS
+       Tier 1: 原味平平無奇茂茂 (Original cute green mascot)
+       Tier 2: 萬聖幽靈學徒茂茂 (Ghost sheet + wand)
+       Tier 3: 萬聖魔導大師茂茂 (Purple/gold wizard robe + golden crown)
+       Tier 4: 終極糖果天王・神聖茂茂 (Golden divine wings + halo)
+       ========================================================= */
+    const TIER1_PIXEL_MAP = [
+      ".........gGg............",
+      "........GgggG...........",
+      ".......GgggggG..........",
+      "...GGG.GgggggG.GGG......",
+      "..GgggGGgggggGGgggG.....",
+      ".GgggggggggggggggggG....",
+      ".GggggggggggggggggggG...",
+      "GgggggFFFFFFFFFFFggggG..",
+      "GggggFFFFFFFFFFFFFgggG..",
+      ".GggFEEFFFFFFFFEEFggG...",
+      "..GgFFFFFFFFFFFFFFgG....",
+      "...GFFPFFMMMMFFPFFG.....",
+      "....FFFFFMMMMFFFFF......",
+      ".....RRRRRRRRRRRR.......",
+      "....GGGGGGGGGGGGGG......",
+      "...GGGGGGGGGGGGGGGG.....",
+      "..GGGGGGGGGGGGGGGGGG....",
+      "..GGGGGGGGGGGGGGGGGG....",
+      "..GGGGGGGGGGGGGGGGGG....",
+      "..GGGGGGGGGGGGGGGGGG....",
+      "..GGGGGGGGGGGGGGGGGG....",
+      "..GGGGGGGGGGGGGGGGGG....",
+      "..GggGggGGGGggGggGGG....",
+      "..G..G..GGGG.G..G..G...."
+    ];
+
+    const TIER2_PIXEL_MAP = [
       ".........gGg............",
       "........GgggG...........",
       ".......GgggggG..........",
@@ -701,44 +772,106 @@
       "..w..w..wwww.w..w..w...."
     ];
 
-    const PIXEL_COLORS = {
+    const TIER3_PIXEL_MAP = [
+      ".......YY...YY..........",
+      ".......YYYYYYY..........",
+      "........YgGgY...........",
+      ".......GgggggG..........",
+      "...GGG.GgggggG.GGG......",
+      "..GgggGGgggggGGgggG.....",
+      ".GgggggggggggggggggG....",
+      "GgggggFFFFFFFFFFFggggG..",
+      "GggggFFFFFFFFFFFFFgggG..",
+      ".GggFEEFFFFFFFFEEFggG...",
+      "..GgFFFFFFFFFFFFFFgG....",
+      "...GFFPFFMMMMFFPFFG.....",
+      "....FFFFFMMMMFFFFF......",
+      ".....YYYYYYYYYYYY.......",
+      "....ZZZZZZZZZZZZZZ......",
+      "...ZZZZZZZZZZZZZZZZ.....",
+      "..ZZZZZZZYZZZYZZZZZZ....",
+      "..ZZZZZZZZZZZZZZZZZZ....",
+      "..ZZZZZZZZZZZZZZZZZZ....",
+      "..ZZZZZZZZZZZZZZZZZZ....",
+      "..ZZZZZZZZZZZZZZZZZZ....",
+      "..ZZzZZzZZZZzZZzZZZZ....",
+      "..ZzzZzzZZZZzzZzzZZZ....",
+      "..z..z..zzzz.z..z..z...."
+    ];
+
+    const PIXEL_PALETTE = {
       'G': '#166534',
       'g': '#22c55e',
-      'L': '#86efac',
       'F': '#ffedd5',
       'E': '#0f172a',
       'P': '#f472b6',
       'M': '#e11d48',
       'R': '#ef4444',
-      'r': '#991b1b',
       'W': '#ffffff',
       'w': '#cbd5e1',
       'S': '#64748b',
-      'Y': '#facc15'
+      'Y': '#facc15', // Gold
+      'Z': '#6b21a8', // Wizard Purple
+      'z': '#3b0764'
     };
 
-    function drawPixelMaoMaoGhost(targetCtx, x, y, size, isInvincible = false, squash = 1, cheer = false) {
+    function getMaoMaoTier() {
+      if (activeGameMode === GAME_MODES.CLASSIC) return 2; // Classic default ghost
+      if (rogueStage >= 15) return 4;
+      if (rogueStage >= 10) return 3;
+      if (rogueStage >= 5) return 2;
+      return 1;
+    }
+
+    function drawPixelMaoMao(targetCtx, x, y, size, isInvincible = false, squash = 1, cheer = false) {
       targetCtx.save();
       targetCtx.translate(x, y);
 
       if (isInvincible && Math.floor(Date.now() / 80) % 2 === 0) {
         targetCtx.globalAlpha = 0.45;
       }
-
       targetCtx.scale(1 / squash, squash);
 
-      const rows = MAOMAO_GHOST_PIXEL_MAP.length;
-      const cols = MAOMAO_GHOST_PIXEL_MAP[0].length;
-      const pixelSize = size / cols;
+      const tier = getMaoMaoTier();
 
+      // Tier 4: Divine Wings & Halo background
+      if (tier === 4) {
+        // Rainbow Aura
+        targetCtx.strokeStyle = `hsl(${(Date.now() / 15) % 360}, 90%, 65%)`;
+        targetCtx.lineWidth = 3;
+        targetCtx.beginPath();
+        targetCtx.arc(0, -size * 0.52, size * 0.28, 0, Math.PI * 2);
+        targetCtx.stroke();
+
+        // Golden Wings
+        targetCtx.fillStyle = '#fbbf24';
+        targetCtx.beginPath();
+        targetCtx.moveTo(-size * 0.35, -size * 0.1);
+        targetCtx.quadraticCurveTo(-size * 0.85, -size * 0.45, -size * 0.7, size * 0.2);
+        targetCtx.lineTo(-size * 0.35, size * 0.15);
+        targetCtx.closePath();
+        targetCtx.fill();
+
+        targetCtx.beginPath();
+        targetCtx.moveTo(size * 0.35, -size * 0.1);
+        targetCtx.quadraticCurveTo(size * 0.85, -size * 0.45, size * 0.7, size * 0.2);
+        targetCtx.lineTo(size * 0.35, size * 0.15);
+        targetCtx.closePath();
+        targetCtx.fill();
+      }
+
+      const map = (tier === 1) ? TIER1_PIXEL_MAP : (tier === 3 || tier === 4) ? TIER3_PIXEL_MAP : TIER2_PIXEL_MAP;
+      const rows = map.length;
+      const cols = map[0].length;
+      const pixelSize = size / cols;
       const startX = -size / 2;
       const startY = -size / 2;
 
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
-          const char = MAOMAO_GHOST_PIXEL_MAP[r][c];
-          if (char !== '.' && PIXEL_COLORS[char]) {
-            targetCtx.fillStyle = PIXEL_COLORS[char];
+          const char = map[r][c];
+          if (char !== '.' && PIXEL_PALETTE[char]) {
+            targetCtx.fillStyle = PIXEL_PALETTE[char];
             targetCtx.fillRect(
               Math.floor(startX + c * pixelSize),
               Math.floor(startY + r * pixelSize),
@@ -749,30 +882,1282 @@
         }
       }
 
-      // Cheering raised fist / sweet gesture when catching sweets
+      // Candy Magic Staff for Tier 2, 3, 4
+      if (tier >= 2) {
+        targetCtx.fillStyle = '#f8fafc';
+        targetCtx.fillRect(size * 0.36, -size * 0.3, pixelSize * 1.5, size * 0.65);
+        // Star crystal on staff
+        targetCtx.fillStyle = tier === 4 ? '#fef08a' : '#ec4899';
+        targetCtx.beginPath();
+        targetCtx.arc(size * 0.41, -size * 0.32, pixelSize * 2.8, 0, Math.PI * 2);
+        targetCtx.fill();
+      }
+
       if (cheer) {
         targetCtx.fillStyle = '#facc15';
         targetCtx.fillRect(-size * 0.45, -size * 0.25, pixelSize * 2.5, pixelSize * 2.5);
-        targetCtx.fillStyle = '#ca8a04';
-        targetCtx.fillRect(-size * 0.45, -size * 0.28, pixelSize * 2.5, pixelSize * 0.8);
       }
 
       targetCtx.restore();
     }
 
-    function renderStaticMascots() {
+    /* =========================================================
+       VECTOR GRAPHICS: CANDIES, HAZARDS & BULLETS
+       All items rendered via HTML5 Canvas vector primitives
+       (Permanently eliminates iOS black emoji silhouette bug)
+       ========================================================= */
+    function drawVectorCandy(c, type, r) {
+      if (type === 'lollipop') {
+        // 🍭 Lollipop
+        c.fillStyle = '#f8fafc';
+        c.fillRect(-2, 0, 4, r * 1.3);
+        c.beginPath();
+        c.arc(0, -2, r * 0.8, 0, Math.PI * 2);
+        c.fillStyle = '#f43f5e';
+        c.fill();
+        c.lineWidth = 1.8;
+        c.strokeStyle = '#9f1239';
+        c.stroke();
+        c.strokeStyle = '#facc15';
+        c.beginPath();
+        c.arc(0, -2, r * 0.5, 0.4, Math.PI * 1.5);
+        c.stroke();
+      } else if (type === 'donut') {
+        // 🍩 Donut
+        c.beginPath();
+        c.arc(0, 0, r * 0.85, 0, Math.PI * 2);
+        c.fillStyle = '#d97706';
+        c.fill();
+        c.beginPath();
+        c.arc(0, 0, r * 0.72, 0, Math.PI * 2);
+        c.fillStyle = '#f472b6';
+        c.fill();
+        c.beginPath();
+        c.arc(0, 0, r * 0.3, 0, Math.PI * 2);
+        c.fillStyle = '#0f031e';
+        c.fill();
+      } else if (type === 'star') {
+        // ⭐ Star
+        c.beginPath();
+        const spikes = 5;
+        let rot = Math.PI / 2 * 3;
+        const step = Math.PI / spikes;
+        for (let i = 0; i < spikes; i++) {
+          c.lineTo(Math.cos(rot) * r, Math.sin(rot) * r);
+          rot += step;
+          c.lineTo(Math.cos(rot) * (r * 0.45), Math.sin(rot) * (r * 0.45));
+          rot += step;
+        }
+        c.closePath();
+        c.fillStyle = '#facc15';
+        c.fill();
+        c.strokeStyle = '#ca8a04';
+        c.lineWidth = 1.5;
+        c.stroke();
+      } else if (type === 'heart') {
+        // 💖 Heart
+        c.beginPath();
+        const s = r * 0.8;
+        c.moveTo(0, s * 0.7);
+        c.bezierCurveTo(-s * 1.1, s * 0.2, -s * 1.1, -s * 0.8, 0, -s * 0.45);
+        c.bezierCurveTo(s * 1.1, -s * 0.8, s * 1.1, s * 0.2, 0, s * 0.7);
+        c.closePath();
+        c.fillStyle = '#f43f5e';
+        c.fill();
+        c.strokeStyle = '#ffe4e6';
+        c.lineWidth = 2;
+        c.stroke();
+      } else {
+        // 🍬 Sweet Candy
+        c.fillStyle = '#ec4899';
+        c.beginPath();
+        c.moveTo(-r * 0.5, 0); c.lineTo(-r * 1.1, -r * 0.5); c.lineTo(-r * 1.1, r * 0.5);
+        c.closePath(); c.fill();
+        c.beginPath();
+        c.moveTo(r * 0.5, 0); c.lineTo(r * 1.1, -r * 0.5); c.lineTo(r * 1.1, r * 0.5);
+        c.closePath(); c.fill();
+        c.beginPath();
+        c.ellipse(0, 0, r * 0.7, r * 0.55, 0, 0, Math.PI * 2);
+        c.fillStyle = '#f97316';
+        c.fill();
+        c.strokeStyle = '#c2410c';
+        c.lineWidth = 1.5;
+        c.stroke();
+      }
+    }
+
+    function drawVectorMonster(c, type, r) {
+      if (type === 0) {
+        // 🧟 Zombie
+        c.fillStyle = '#84cc16';
+        c.fillRect(-r * 0.65, -r * 0.6, r * 1.3, r * 1.2);
+        c.strokeStyle = '#3f6212';
+        c.strokeRect(-r * 0.65, -r * 0.6, r * 1.3, r * 1.2);
+        c.fillStyle = '#dc2626';
+        c.fillRect(-r * 0.4, -r * 0.1, 4, 4);
+        c.fillRect(r * 0.15, -r * 0.1, 4, 4);
+      } else if (type === 1) {
+        // 🧛 Vampire
+        c.fillStyle = '#dc2626';
+        c.beginPath();
+        c.moveTo(-r * 0.8, -r * 0.6); c.lineTo(0, r * 0.8); c.lineTo(r * 0.8, -r * 0.6);
+        c.closePath(); c.fill();
+        c.beginPath();
+        c.arc(0, 0, r * 0.52, 0, Math.PI * 2);
+        c.fillStyle = '#f8fafc';
+        c.fill();
+        c.fillStyle = '#b91c1c';
+        c.fillRect(-r * 0.22, -r * 0.05, 3.5, 3.5);
+        c.fillRect(r * 0.1, -r * 0.05, 3.5, 3.5);
+      } else if (type === 2) {
+        // 🧙 Witch
+        c.beginPath();
+        c.arc(0, r * 0.15, r * 0.45, 0, Math.PI * 2);
+        c.fillStyle = '#a3e635';
+        c.fill();
+        c.fillStyle = '#3b0764';
+        c.beginPath();
+        c.ellipse(0, -r * 0.05, r * 0.85, r * 0.22, 0, 0, Math.PI * 2);
+        c.fill();
+        c.beginPath();
+        c.moveTo(-r * 0.45, -r * 0.05); c.lineTo(r * 0.25, -r * 0.85); c.lineTo(r * 0.45, -r * 0.05);
+        c.closePath(); c.fill();
+      } else if (type === 3) {
+        // 💀 Skull
+        c.beginPath();
+        c.arc(0, -r * 0.15, r * 0.55, 0, Math.PI * 2);
+        c.fillStyle = '#f8fafc';
+        c.fill();
+        c.fillRect(-r * 0.3, r * 0.12, r * 0.6, r * 0.35);
+        c.fillStyle = '#0f172a';
+        c.beginPath();
+        c.arc(-r * 0.22, -r * 0.1, r * 0.15, 0, Math.PI * 2);
+        c.arc(r * 0.22, -r * 0.1, r * 0.15, 0, Math.PI * 2);
+        c.fill();
+      } else if (type === 10) {
+        // 🎃 BOSS: Pumpkin King
+        c.beginPath();
+        c.ellipse(0, 0, r * 0.95, r * 0.85, 0, 0, Math.PI * 2);
+        c.fillStyle = '#ea580c';
+        c.fill();
+        c.strokeStyle = '#9a3412';
+        c.lineWidth = 3;
+        c.stroke();
+        // Carved Glowing Face
+        c.fillStyle = '#fef08a';
+        c.beginPath();
+        c.moveTo(-r * 0.4, -r * 0.2); c.lineTo(-r * 0.2, -r * 0.2); c.lineTo(-r * 0.3, 0); c.closePath();
+        c.moveTo(r * 0.4, -r * 0.2); c.lineTo(r * 0.2, -r * 0.2); c.lineTo(r * 0.3, 0); c.closePath();
+        c.fill();
+        // Jagged smile
+        c.beginPath();
+        c.moveTo(-r * 0.5, r * 0.2);
+        c.lineTo(-r * 0.25, r * 0.35); c.lineTo(0, r * 0.2); c.lineTo(r * 0.25, r * 0.35); c.lineTo(r * 0.5, r * 0.2);
+        c.lineTo(r * 0.3, r * 0.5); c.lineTo(-r * 0.3, r * 0.5);
+        c.closePath();
+        c.fill();
+      }
+    }
+
+    /* =========================================================
+       ROGUELIKE 2-CHOOSE-1 TALENTS DATABASE
+       ========================================================= */
+    const ROGUELIKE_TALENT_POOL = [
+      {
+        id: 'multiShot',
+        name: '多重彈道 +1',
+        icon: '🍡',
+        desc: '糖果發射彈道數量增加 1 道，覆蓋更大攻擊範圍！',
+        apply: () => { playerTalents.multiShot = Math.min(5, playerTalents.multiShot + 1); }
+      },
+      {
+        id: 'attackSpeed',
+        name: '極速連射 +25%',
+        icon: '⚡',
+        desc: '大幅縮短糖果射擊間隔，化身萬聖極速加特林！',
+        apply: () => { playerTalents.attackSpeed += 0.25; }
+      },
+      {
+        id: 'penetrateLollipop',
+        name: '巨大穿透棒棒糖',
+        icon: '🍭',
+        desc: '35% 機率發射巨大棒棒糖，貫穿全體怪物不消散！',
+        apply: () => { playerTalents.penetrateLollipop += 0.35; }
+      },
+      {
+        id: 'explosiveDonut',
+        name: '爆破草莓甜甜圈',
+        icon: '🍩',
+        desc: '糖果擊中怪物時引發範圍甜蜜爆炸，造成連鎖傷害！',
+        apply: () => { playerTalents.explosiveDonut += 1; }
+      },
+      {
+        id: 'homingStar',
+        name: '追蹤彩虹星',
+        icon: '⭐',
+        desc: '週期性發射自動追蹤鎖定怪物的彩虹魔法飛星！',
+        apply: () => { playerTalents.homingStar += 1; }
+      },
+      {
+        id: 'chocolateShield',
+        name: '旋轉巧克力護盾',
+        icon: '🍫',
+        desc: '在茂茂周圍生成環繞旋轉的巧克力磚，抵擋怪物子彈！',
+        apply: () => { playerTalents.chocolateShield = Math.min(4, playerTalents.chocolateShield + 1); }
+      },
+      {
+        id: 'frostPeppermint',
+        name: '冰霜薄荷緩速',
+        icon: '❄️',
+        desc: '攻擊附帶冰霜效果，使擊中的萬聖怪物減速 35%！',
+        apply: () => { playerTalents.frostPeppermint = 1; }
+      },
+      {
+        id: 'caramelCrit',
+        name: '焦糖暴擊 +25%',
+        icon: '💥',
+        desc: '暴擊率大幅提升，暴擊時造成 2.5 倍致命重創！',
+        apply: () => { playerTalents.caramelCrit += 0.25; }
+      },
+      {
+        id: 'sweetHealing',
+        name: '甜蜜甘霖 (回血+上限)',
+        icon: '💖',
+        desc: '立即回復 1 顆愛心，並額外提升 1 顆愛心生命上限！',
+        apply: () => {
+          maxHearts++;
+          hearts = Math.min(maxHearts, hearts + 1);
+          updateHeartsUI();
+        }
+      }
+    ];
+
+    function presentTalentChoice() {
+      isTalentSelecting = true;
+      sound.playStageClearHorn();
+
+      // Clear hazard bullets
+      enemyBullets = [];
+
+      // Pick 2 distinct random talents from pool
+      const shuffled = [...ROGUELIKE_TALENT_POOL].sort(() => 0.5 - Math.random());
+      const choices = shuffled.slice(0, 2);
+
+      const container = document.getElementById('talentOptionsContainer');
+      container.innerHTML = '';
+
+      choices.forEach(t => {
+        const btn = document.createElement('button');
+        btn.className = 'w-full p-3 rounded-2xl bg-purple-900/80 hover:bg-purple-800 border-2 border-amber-400 active:scale-95 transition text-left flex items-center gap-3 shadow-lg';
+        btn.innerHTML = `
+          <div class="text-3xl p-1 bg-black/40 rounded-xl border border-purple-400/40 shrink-0">${t.icon}</div>
+          <div class="flex-1 min-w-0">
+            <div class="font-black text-amber-300 text-sm">${t.name}</div>
+            <div class="text-[11px] text-purple-200 mt-0.5">${t.desc}</div>
+          </div>
+          <span class="text-xs text-amber-400 font-bold shrink-0 pixel-text">SELECT</span>
+        `;
+        btn.onclick = () => selectTalent(t);
+        container.appendChild(btn);
+      });
+
+      document.getElementById('talentModal').classList.remove('hidden');
+    }
+
+    function selectTalent(talent) {
+      sound.playTalentSelect();
+      talent.apply();
+      document.getElementById('talentModal').classList.add('hidden');
+      isTalentSelecting = false;
+
+      // Advance Stage
+      rogueStage++;
+      if (rogueStage > MAX_ROGUE_STAGES) {
+        endGame(true);
+        return;
+      }
+
+      startRogueStage();
+    }
+
+    function startRogueStage() {
+      // Stage setup
+      const isBoss = (rogueStage % 5 === 0);
+      document.getElementById('stageBadge').textContent = `STAGE ${rogueStage}/${MAX_ROGUE_STAGES}`;
+
+      const bossContainer = document.getElementById('bossBarContainer');
+      if (isBoss) {
+        bossContainer.classList.remove('hidden');
+        const bossNames = {
+          5: '🎃 萬聖南瓜魔王',
+          10: '🧛 夜幕吸血鬼伯爵',
+          15: '🧙‍♀️ 深淵黑貓魔女',
+          20: '💀 終焉亡靈大領主'
+        };
+        document.getElementById('bossNameText').textContent = bossNames[rogueStage] || '👑 萬聖魔王';
+        document.getElementById('bossHpFill').style.width = '100%';
+        document.getElementById('bossHpText').textContent = '100%';
+
+        // Spawn Boss
+        const maxHp = 60 + rogueStage * 30;
+        bossActive = {
+          x: cw / 2,
+          y: -60,
+          targetY: 90,
+          radius: 36,
+          hp: maxHp,
+          maxHp: maxHp,
+          type: 10,
+          attackCooldown: 0,
+          moveTimer: 0,
+          moveDir: 1
+        };
+        enemies = [bossActive];
+        stageEnemiesLeft = 1;
+      } else {
+        bossContainer.classList.add('hidden');
+        bossActive = null;
+        stageEnemiesLeft = 10 + rogueStage * 4;
+      }
+
+      triggerComboBanner(`⚡ STAGE ${rogueStage} 開始！全力射擊！`);
+    }
+
+    function spawnRogueEnemy() {
+      if (bossActive || stageEnemiesLeft <= 0) return;
+
+      const type = Math.floor(Math.random() * 4); // 0: Zombie, 1: Vampire, 2: Witch, 3: Skull
+      const radius = 18;
+      const x = radius + Math.random() * (cw - radius * 2);
+      const hp = 2 + Math.floor(rogueStage / 4);
+
+      enemies.push({
+        x,
+        y: -30,
+        radius,
+        hp,
+        maxHp: hp,
+        type,
+        speed: 1.2 + Math.random() * 1.5 + (rogueStage * 0.1),
+        shootCooldown: Math.floor(60 + Math.random() * 80),
+        wobble: Math.random() * Math.PI * 2,
+        slowTimer: 0
+      });
+
+      stageEnemiesLeft--;
+    }
+
+    function firePlayerBullets() {
+      sound.playShoot();
+      const streams = playerTalents.multiShot;
+      const isPiercing = Math.random() < playerTalents.penetrateLollipop;
+
+      if (streams === 1) {
+        playerBullets.push({
+          x: player.x,
+          y: player.y - player.height * 0.4,
+          vx: 0,
+          vy: -11,
+          radius: isPiercing ? 14 : 7,
+          damage: isPiercing ? 4 : 1,
+          piercing: isPiercing,
+          type: isPiercing ? 'lollipop' : 'sweet'
+        });
+      } else {
+        const spreadAngle = 0.18;
+        const start = -((streams - 1) / 2) * spreadAngle;
+        for (let i = 0; i < streams; i++) {
+          const angle = start + i * spreadAngle;
+          playerBullets.push({
+            x: player.x,
+            y: player.y - player.height * 0.4,
+            vx: Math.sin(angle) * 10,
+            vy: -Math.cos(angle) * 10,
+            radius: isPiercing ? 12 : 7,
+            damage: isPiercing ? 3 : 1,
+            piercing: isPiercing,
+            type: isPiercing ? 'lollipop' : 'sweet'
+          });
+        }
+      }
+
+      // Homing Rainbow Star check
+      if (playerTalents.homingStar > 0 && Math.random() < 0.28) {
+        playerBullets.push({
+          x: player.x,
+          y: player.y - player.height * 0.4,
+          vx: (Math.random() - 0.5) * 4,
+          vy: -8,
+          radius: 10,
+          damage: 2,
+          isHoming: true,
+          type: 'star'
+        });
+      }
+    }
+
+    function updateGame() {
+      if (!isPlaying || isPaused || isTalentSelecting) return;
+
+      // 1. Controls Movement
+      if (keys.Left) player.targetX -= player.speed;
+      if (keys.Right) player.targetX += player.speed;
+      if (keys.Up) player.targetY -= player.speed;
+      if (keys.Down) player.targetY += player.speed;
+
+      player.targetX = Math.max(player.width / 2, Math.min(cw - player.width / 2, player.targetX));
+      if (activeGameMode === GAME_MODES.ROGUELIKE) {
+        player.targetY = Math.max(player.height / 2, Math.min(ch - player.height / 2, player.targetY));
+      } else {
+        player.targetY = ch - player.height * 0.55 - 12;
+      }
+
+      player.x += (player.targetX - player.x) * 0.25;
+      player.y += (player.targetY - player.y) * 0.25;
+      player.squash += (1 - player.squash) * 0.12;
+      if (player.cheerTimer > 0) player.cheerTimer--;
+      if (player.invulnerableTimer > 0) player.invulnerableTimer--;
+
+      // Shield angle rotation
+      player.shieldAngle += 0.05;
+
+      // 2. ROGUELIKE MODE LOOP
+      if (activeGameMode === GAME_MODES.ROGUELIKE) {
+        // Auto shooting
+        const shootInterval = Math.max(8, Math.round(18 / playerTalents.attackSpeed));
+        shootTimer++;
+        if (shootTimer >= shootInterval) {
+          shootTimer = 0;
+          firePlayerBullets();
+        }
+
+        // Spawn normal enemies
+        spawnTimer++;
+        if (spawnTimer >= Math.max(25, 60 - rogueStage * 2)) {
+          spawnTimer = 0;
+          spawnRogueEnemy();
+        }
+
+        // Update Player Bullets
+        for (let bIdx = playerBullets.length - 1; bIdx >= 0; bIdx--) {
+          const b = playerBullets[bIdx];
+
+          // Homing Star steering
+          if (b.isHoming && enemies.length > 0) {
+            let closest = enemies[0];
+            let minDist = 99999;
+            enemies.forEach(e => {
+              const d = Math.hypot(e.x - b.x, e.y - b.y);
+              if (d < minDist) { minDist = d; closest = e; }
+            });
+            const angle = Math.atan2(closest.y - b.y, closest.x - b.x);
+            b.vx += Math.cos(angle) * 1.2;
+            b.vy += Math.sin(angle) * 1.2;
+            const speed = Math.hypot(b.vx, b.vy);
+            if (speed > 11) { b.vx = (b.vx / speed) * 11; b.vy = (b.vy / speed) * 11; }
+          }
+
+          b.x += b.vx;
+          b.y += b.vy;
+
+          let bulletHit = false;
+
+          // Check hit against enemies
+          for (let eIdx = enemies.length - 1; eIdx >= 0; eIdx--) {
+            const enemy = enemies[eIdx];
+            const dist = Math.hypot(enemy.x - b.x, enemy.y - b.y);
+            if (dist < (enemy.radius + b.radius)) {
+              sound.playEnemyHit();
+              createSparks(b.x, b.y, '#facc15', 5);
+
+              // Crit calculation
+              const isCrit = Math.random() < playerTalents.caramelCrit;
+              const dmg = isCrit ? Math.round(b.damage * 2.5) : b.damage;
+              enemy.hp -= dmg;
+
+              // Frost Peppermint slow
+              if (playerTalents.frostPeppermint) {
+                enemy.slowTimer = 90;
+              }
+
+              // Explosive Donut AoE
+              if (playerTalents.explosiveDonut > 0) {
+                createSparks(b.x, b.y, '#ec4899', 12);
+                enemies.forEach(otherE => {
+                  if (Math.hypot(otherE.x - b.x, otherE.y - b.y) < 65) {
+                    otherE.hp -= playerTalents.explosiveDonut * 1.5;
+                  }
+                });
+              }
+
+              // Boss HP bar update
+              if (enemy === bossActive) {
+                const pct = Math.max(0, Math.round((enemy.hp / enemy.maxHp) * 100));
+                document.getElementById('bossHpFill').style.width = `${pct}%`;
+                document.getElementById('bossHpText').textContent = `${pct}%`;
+              }
+
+              if (enemy.hp <= 0) {
+                sound.playEnemyExplode();
+                createSparks(enemy.x, enemy.y, '#f97316', 16);
+                score += (enemy === bossActive ? 500 : 25);
+                updateScoreUI();
+                enemies.splice(eIdx, 1);
+                if (enemy === bossActive) {
+                  bossActive = null;
+                }
+              }
+
+              if (!b.piercing) {
+                bulletHit = true;
+                break;
+              }
+            }
+          }
+
+          if (bulletHit || b.y < -30 || b.x < -30 || b.x > cw + 30) {
+            playerBullets.splice(bIdx, 1);
+          }
+        }
+
+        // Update Enemies
+        for (let eIdx = enemies.length - 1; eIdx >= 0; eIdx--) {
+          const enemy = enemies[eIdx];
+
+          // Slow modifier
+          let spd = enemy.speed || 1.5;
+          if (enemy.slowTimer > 0) {
+            enemy.slowTimer--;
+            spd *= 0.65;
+          }
+
+          if (enemy === bossActive) {
+            // Boss Movement
+            if (enemy.y < enemy.targetY) enemy.y += 1.5;
+            enemy.x += enemy.moveDir * 1.8;
+            if (enemy.x > cw - 50) enemy.moveDir = -1;
+            if (enemy.x < 50) enemy.moveDir = 1;
+
+            // Boss firing bullets
+            enemy.attackCooldown--;
+            if (enemy.attackCooldown <= 0) {
+              enemy.attackCooldown = Math.max(35, 75 - rogueStage * 2);
+              // Radial or aimed spread
+              for (let a = -0.4; a <= 0.4; a += 0.2) {
+                enemyBullets.push({
+                  x: enemy.x,
+                  y: enemy.y + enemy.radius,
+                  vx: Math.sin(a) * 4,
+                  vy: Math.cos(a) * 4,
+                  radius: 5
+                });
+              }
+            }
+          } else {
+            // Normal enemy movement & shooting
+            enemy.wobble += 0.05;
+            enemy.x += Math.sin(enemy.wobble) * 1.5;
+            enemy.y += spd;
+
+            enemy.shootCooldown--;
+            if (enemy.shootCooldown <= 0 && enemy.y < ch * 0.6) {
+              enemy.shootCooldown = 90 + Math.random() * 90;
+              const angle = Math.atan2(player.y - enemy.y, player.x - enemy.x);
+              enemyBullets.push({
+                x: enemy.x,
+                y: enemy.y + enemy.radius,
+                vx: Math.cos(angle) * 3.5,
+                vy: Math.sin(angle) * 3.5,
+                radius: 4.5
+              });
+            }
+
+            // Drop out
+            if (enemy.y > ch + 40) {
+              enemies.splice(eIdx, 1);
+              continue;
+            }
+          }
+
+          // Enemy touches player
+          const pDist = Math.hypot(enemy.x - player.x, enemy.y - player.y);
+          if (pDist < (enemy.radius + player.width * 0.35)) {
+            triggerPlayerDamage();
+          }
+        }
+
+        // Update Enemy Bullets
+        for (let ebIdx = enemyBullets.length - 1; ebIdx >= 0; ebIdx--) {
+          const eb = enemyBullets[ebIdx];
+          eb.x += eb.vx;
+          eb.y += eb.vy;
+
+          // Blocked by Rotating Chocolate Shield?
+          let blockedByShield = false;
+          if (playerTalents.chocolateShield > 0) {
+            const shieldCount = playerTalents.chocolateShield;
+            for (let s = 0; s < shieldCount; s++) {
+              const a = player.shieldAngle + (s * (Math.PI * 2 / shieldCount));
+              const sx = player.x + Math.cos(a) * 48;
+              const sy = player.y + Math.sin(a) * 48;
+              if (Math.hypot(eb.x - sx, eb.y - sy) < 14) {
+                blockedByShield = true;
+                createSparks(sx, sy, '#7c2d12', 4);
+                break;
+              }
+            }
+          }
+
+          if (blockedByShield) {
+            enemyBullets.splice(ebIdx, 1);
+            continue;
+          }
+
+          // Hit player?
+          const dist = Math.hypot(eb.x - player.x, eb.y - player.y);
+          if (dist < (eb.radius + player.width * 0.3)) {
+            triggerPlayerDamage();
+            enemyBullets.splice(ebIdx, 1);
+            continue;
+          }
+
+          if (eb.y > ch + 20 || eb.y < -20 || eb.x < -20 || eb.x > cw + 20) {
+            enemyBullets.splice(ebIdx, 1);
+          }
+        }
+
+        // Check Stage Clear (No enemies left & stage quota completed)
+        if (enemies.length === 0 && stageEnemiesLeft <= 0 && !isTalentSelecting) {
+          presentTalentChoice();
+        }
+      }
+
+      // 3. CLASSIC MODE LOOP (接糖果)
+      else {
+        spawnTimer++;
+        if (spawnTimer >= (curDiff === 'hard' ? 24 : curDiff === 'medium' ? 36 : 48)) {
+          spawnTimer = 0;
+          spawnClassicItem();
+        }
+
+        const catchY = player.y - player.height * 0.22;
+        for (let i = items.length - 1; i >= 0; i--) {
+          const item = items[i];
+          item.y += item.speed;
+          item.rot += item.rotSpeed;
+          item.wobble += 0.06;
+
+          if (curDiff === 'hard') {
+            item.x += Math.sin(item.wobble) * 2;
+          }
+
+          const dx = Math.abs(item.x - player.x);
+          const dy = Math.abs(item.y - catchY);
+
+          if (dx < (player.width * 0.44 + item.radius) && dy < (player.height * 0.32 + item.radius)) {
+            if (item.isHazard) {
+              triggerPlayerDamage();
+            } else if (item.isHeart) {
+              sound.playHeal();
+              if (hearts < maxHearts) { hearts++; updateHeartsUI(); }
+              else { score += 150; updateScoreUI(); }
+              triggerComboBanner('💖 HP +1 回復！');
+            } else {
+              combo++;
+              if (combo > maxCombo) maxCombo = combo;
+              player.cheerTimer = 16;
+              sound.playCandyCatch(combo);
+              score += item.points * (combo >= 10 ? 3 : combo >= 5 ? 2 : 1);
+              updateScoreUI();
+              updateComboUI();
+            }
+            items.splice(i, 1);
+            continue;
+          }
+
+          if (item.y > ch + 40) {
+            if (!item.isHazard && combo > 0) { combo = 0; updateComboUI(); }
+            items.splice(i, 1);
+          }
+        }
+      }
+
+      // 4. Update Particles
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.alpha -= p.decay;
+        if (p.alpha <= 0) particles.splice(i, 1);
+      }
+
+      // 5. Update Background stars/lights
+      backgroundLights.forEach(l => {
+        l.y -= l.speedY;
+        if (l.y < -50) { l.y = ch + 50; l.x = Math.random() * cw; }
+      });
+    }
+
+    function triggerPlayerDamage() {
+      if (player.invulnerableTimer > 0) return;
+      sound.playHurt();
+      hearts--;
+      combo = 0;
+      updateHeartsUI();
+      updateComboUI();
+      player.invulnerableTimer = 65;
+      player.squash = 0.72;
+      createSparks(player.x, player.y, '#ef4444', 15);
+
+      if (hearts <= 0) {
+        endGame(false);
+      }
+    }
+
+    function spawnClassicItem() {
+      const hazardChance = (curDiff === 'hard') ? 0.42 : (curDiff === 'medium') ? 0.28 : 0.14;
+      const isHazard = Math.random() < hazardChance;
+      const isHeart = (curDiff === 'hard') && Math.random() < 0.06;
+
+      let type = 0;
+      let points = 10;
+      let candyKey = 'sweet';
+
+      if (isHeart) {
+        candyKey = 'heart';
+        points = 50;
+      } else if (isHazard) {
+        type = Math.floor(Math.random() * 4);
+      } else {
+        const r = Math.random();
+        if (r < 0.35) { candyKey = 'lollipop'; points = 10; }
+        else if (r < 0.65) { candyKey = 'sweet'; points = 15; }
+        else if (r < 0.85) { candyKey = 'donut'; points = 25; }
+        else { candyKey = 'star'; points = 50; }
+      }
+
+      const radius = 20;
+      const x = radius + Math.random() * (cw - radius * 2);
+      const speed = (curDiff === 'hard' ? 4.8 : curDiff === 'medium' ? 3.5 : 2.5) + Math.random() * 1.5;
+
+      items.push({
+        x,
+        y: -30,
+        radius,
+        type,
+        candyKey,
+        points,
+        speed,
+        rot: 0,
+        rotSpeed: (Math.random() - 0.5) * 0.04,
+        isHazard,
+        isHeart,
+        wobble: Math.random() * Math.PI * 2
+      });
+    }
+
+    function createSparks(x, y, color, count = 8) {
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const vel = 2 + Math.random() * 4;
+        particles.push({
+          x, y,
+          vx: Math.cos(angle) * vel,
+          vy: Math.sin(angle) * vel,
+          color,
+          alpha: 1,
+          size: 2.5 + Math.random() * 3.5,
+          decay: 0.03 + Math.random() * 0.03
+        });
+      }
+    }
+
+    function render() {
+      ctx.clearRect(0, 0, cw, ch);
+
+      // 1. Dynamic Retro Background
+      const bgGrad = ctx.createRadialGradient(cw / 2, ch * 0.4, 40, cw / 2, ch * 0.5, cw * 0.85);
+      if (activeGameMode === GAME_MODES.ROGUELIKE && rogueStage >= 10) {
+        bgGrad.addColorStop(0, '#3b0764');
+        bgGrad.addColorStop(1, '#090214');
+      } else {
+        bgGrad.addColorStop(0, '#210839');
+        bgGrad.addColorStop(1, '#080112');
+      }
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, cw, ch);
+
+      // 2. Background floating lights
+      backgroundLights.forEach(light => {
+        ctx.save();
+        ctx.globalAlpha = light.alpha;
+        ctx.fillStyle = light.color;
+        ctx.beginPath();
+        ctx.arc(light.x, light.y, light.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      });
+
+      // 3. Render Mode Entities
+      if (activeGameMode === GAME_MODES.ROGUELIKE) {
+        // Player Bullets
+        playerBullets.forEach(b => {
+          ctx.save();
+          ctx.translate(b.x, b.y);
+          drawVectorCandy(ctx, b.type, b.radius);
+          ctx.restore();
+        });
+
+        // Enemies
+        enemies.forEach(e => {
+          ctx.save();
+          ctx.translate(e.x, e.y);
+          // Red Hazard Aura
+          ctx.strokeStyle = '#ef4444';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(0, 0, e.radius + 3, 0, Math.PI * 2);
+          ctx.stroke();
+
+          drawVectorMonster(ctx, e.type, e.radius);
+
+          // Small HP Bar above regular enemy
+          if (e !== bossActive && e.maxHp > 1) {
+            ctx.fillStyle = 'rgba(0,0,0,0.6)';
+            ctx.fillRect(-e.radius, -e.radius - 8, e.radius * 2, 4);
+            ctx.fillStyle = '#22c55e';
+            ctx.fillRect(-e.radius, -e.radius - 8, (e.radius * 2) * (e.hp / e.maxHp), 4);
+          }
+          ctx.restore();
+        });
+
+        // Enemy Bullets
+        enemyBullets.forEach(eb => {
+          ctx.save();
+          ctx.translate(eb.x, eb.y);
+          ctx.fillStyle = '#f43f5e';
+          ctx.beginPath();
+          ctx.arc(0, 0, eb.radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          ctx.restore();
+        });
+
+        // Rotating Chocolate Shield
+        if (playerTalents.chocolateShield > 0) {
+          const sCount = playerTalents.chocolateShield;
+          for (let s = 0; s < sCount; s++) {
+            const a = player.shieldAngle + (s * (Math.PI * 2 / sCount));
+            const sx = player.x + Math.cos(a) * 48;
+            const sy = player.y + Math.sin(a) * 48;
+            ctx.save();
+            ctx.translate(sx, sy);
+            ctx.rotate(a);
+            ctx.fillStyle = '#58240c';
+            ctx.fillRect(-10, -6, 20, 12);
+            ctx.strokeStyle = '#f59e0b';
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(-10, -6, 20, 12);
+            ctx.restore();
+          }
+        }
+      } else {
+        // Classic Falling Items
+        items.forEach(it => {
+          ctx.save();
+          ctx.translate(it.x, it.y);
+          ctx.rotate(it.rot);
+          if (it.isHazard) {
+            ctx.strokeStyle = 'rgba(239, 68, 68, 0.9)';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(-it.radius - 2, -it.radius - 2, (it.radius + 2) * 2, (it.radius + 2) * 2);
+            drawVectorMonster(ctx, it.type, it.radius);
+          } else {
+            drawVectorCandy(ctx, it.candyKey, it.radius);
+          }
+          ctx.restore();
+        });
+      }
+
+      // 4. Draw MaoMao Mascot
+      drawPixelMaoMao(
+        ctx,
+        player.x,
+        player.y,
+        player.width,
+        player.invulnerableTimer > 0,
+        player.squash,
+        player.cheerTimer > 0
+      );
+
+      // 5. Particles
+      particles.forEach(p => {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, p.alpha);
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      });
+    }
+
+    function gameLoop() {
+      updateGame();
+      render();
+      requestAnimationFrame(gameLoop);
+    }
+
+    function updateHeartsUI() {
+      const c = document.getElementById('heartsContainer');
+      c.innerHTML = '';
+      for (let i = 0; i < maxHearts; i++) {
+        const span = document.createElement('span');
+        span.className = 'text-xs sm:text-sm';
+        span.textContent = i < hearts ? '❤️' : '🖤';
+        c.appendChild(span);
+      }
+    }
+
+    function updateScoreUI() {
+      document.getElementById('scoreText').textContent = score;
+    }
+
+    function updateComboUI() {
+      const badge = document.getElementById('comboBadge');
+      const val = document.getElementById('comboVal');
+      if (combo >= 2) {
+        badge.classList.remove('hidden');
+        val.textContent = combo;
+      } else {
+        badge.classList.add('hidden');
+      }
+    }
+
+    function triggerComboBanner(text) {
+      const banner = document.getElementById('comboBanner');
+      banner.textContent = text;
+      banner.classList.remove('opacity-0', '-translate-y-4', 'scale-75');
+      banner.classList.add('opacity-100', 'translate-y-0', 'scale-110');
+      setTimeout(() => {
+        banner.classList.add('opacity-0', '-translate-y-4', 'scale-75');
+        banner.classList.remove('opacity-100', 'translate-y-0', 'scale-110');
+      }, 1200);
+    }
+
+    // Starting Roguelike Shoot 'Em Up
+    function startRoguelikeGame() {
+      sound.playCoin();
+      activeGameMode = GAME_MODES.ROGUELIKE;
+      document.getElementById('menuScreen').classList.add('hidden');
+      document.getElementById('gameHeader').classList.remove('hidden');
+      document.getElementById('gameModeBadge').textContent = 'ROGUELIKE';
+      document.getElementById('gameModeBadge').className = 'pixel-text text-[9px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/50';
+
+      // Reset talents
+      playerTalents.multiShot = 1;
+      playerTalents.attackSpeed = 1;
+      playerTalents.penetrateLollipop = 0;
+      playerTalents.explosiveDonut = 0;
+      playerTalents.homingStar = 0;
+      playerTalents.chocolateShield = 0;
+      playerTalents.frostPeppermint = 0;
+      playerTalents.caramelCrit = 0;
+
+      rogueStage = 1;
+      maxHearts = 3;
+      hearts = 3;
+      score = 0;
+      combo = 0;
+      maxCombo = 0;
+
+      playerBullets = [];
+      enemies = [];
+      enemyBullets = [];
+      particles = [];
+
+      updateHeartsUI();
+      updateScoreUI();
+      updateComboUI();
+
+      player.x = cw / 2;
+      player.y = ch - 90;
+      player.targetX = player.x;
+      player.targetY = player.y;
+
+      isPlaying = true;
+      isPaused = false;
+      isTalentSelecting = false;
+      document.getElementById('pauseIcon').textContent = '⏸️';
+
+      startRogueStage();
+    }
+
+    // Starting Classic Candy Catch
+    function startClassicGame() {
+      sound.playCoin();
+      activeGameMode = GAME_MODES.CLASSIC;
+      document.getElementById('menuScreen').classList.add('hidden');
+      document.getElementById('gameHeader').classList.remove('hidden');
+      document.getElementById('bossBarContainer').classList.add('hidden');
+
+      document.getElementById('gameModeBadge').textContent = 'CLASSIC';
+      document.getElementById('gameModeBadge').className = 'pixel-text text-[9px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/50';
+      document.getElementById('stageBadge').textContent = curDiff.toUpperCase();
+
+      maxHearts = curDiff === 'easy' ? 5 : 3;
+      hearts = maxHearts;
+      timeLeft = curDiff === 'hard' ? 15 : 60;
+      score = 0;
+      combo = 0;
+      maxCombo = 0;
+      items = [];
+      particles = [];
+
+      updateHeartsUI();
+      updateScoreUI();
+      updateComboUI();
+
+      document.getElementById('timerText').textContent = timeLeft;
+      player.x = cw / 2;
+      player.targetX = player.x;
+      player.y = ch - player.height * 0.55 - 12;
+      player.targetY = player.y;
+
+      isPlaying = true;
+      isPaused = false;
+      document.getElementById('pauseIcon').textContent = '⏸️';
+
+      clearInterval(timerTimer);
+      timerTimer = setInterval(() => {
+        if (!isPlaying || isPaused) return;
+        timeLeft--;
+        document.getElementById('timerText').textContent = timeLeft;
+
+        if (timeLeft <= 0) {
+          if (curDiff === 'hard') {
+            sound.playStageClearHorn();
+            score += 200;
+            updateScoreUI();
+            timeLeft = 15;
+            triggerComboBanner('⚡ 15秒通關！難度狂飆！');
+          } else {
+            endGame(true);
+          }
+        }
+      }, 1000);
+    }
+
+    function endGame(isVictory) {
+      isPlaying = false;
+      clearInterval(timerTimer);
+      sound.playVictory();
+
+      const modal = document.getElementById('endModal');
+      const title = document.getElementById('endTitle');
+      const sub = document.getElementById('endSubtitle');
+      const emoji = document.getElementById('endEmoji');
+      const finalModeText = document.getElementById('finalModeText');
+      const finalStageText = document.getElementById('finalStageText');
+
+      finalModeText.textContent = activeGameMode === GAME_MODES.ROGUELIKE ? '茂茂派糖大挑戰 (STG)' : '經典接糖果派對';
+      finalStageText.textContent = activeGameMode === GAME_MODES.ROGUELIKE ? `STAGE ${rogueStage}` : (curDiff.toUpperCase());
+
+      if (isVictory) {
+        emoji.textContent = '👑🍬';
+        title.textContent = activeGameMode === GAME_MODES.ROGUELIKE ? '萬聖全域通關！神聖茂茂！' : '派對圓滿結束！大獲全勝！';
+        sub.textContent = '茂茂成功將糖果發遍整個萬聖夜，怪物全部被甜化！';
+      } else {
+        emoji.textContent = '🎃👻';
+        title.textContent = 'GAME OVER! 下次再戰!';
+        sub.textContent = activeGameMode === GAME_MODES.ROGUELIKE ? `在第 ${rogueStage} 關的激烈彈幕中竭盡全力！` : '愛心用完了，但小幽靈茂茂今天還是玩得超盡興！';
+      }
+
+      document.getElementById('finalScore').textContent = score;
+      document.getElementById('finalMaxCombo').textContent = activeGameMode === GAME_MODES.ROGUELIKE ? (score / 25) : maxCombo;
+
+      let honor = '萬聖糖果小學徒';
+      if (activeGameMode === GAME_MODES.ROGUELIKE) {
+        if (rogueStage >= 20) honor = '👑 終極萬聖神聖糖果天王・茂茂';
+        else if (rogueStage >= 15) honor = '⚡ 萬聖魔導大宗師・星光茂茂';
+        else if (rogueStage >= 10) honor = '🎩 幽靈法術大師・茂茂';
+        else if (rogueStage >= 5) honor = '🍭 熟練的糖果飛行員・茂茂';
+      } else {
+        if (score >= 600) honor = '👑 傳奇萬聖幽靈大宗師';
+        else if (score >= 350) honor = '⭐ 萬聖節接糖第一高手';
+      }
+      document.getElementById('finalHonor').textContent = honor;
+
+      modal.classList.remove('hidden');
+    }
+
+    function restartGame() {
+      document.getElementById('endModal').classList.add('hidden');
+      if (activeGameMode === GAME_MODES.ROGUELIKE) {
+        startRoguelikeGame();
+      } else {
+        startClassicGame();
+      }
+    }
+
+    function openMenuFromGame() {
+      sound.playMenuClick();
+      isPlaying = false;
+      clearInterval(timerTimer);
+      document.getElementById('endModal').classList.add('hidden');
+      document.getElementById('talentModal').classList.add('hidden');
+      document.getElementById('gameHeader').classList.add('hidden');
+      document.getElementById('bossBarContainer').classList.add('hidden');
+      document.getElementById('menuScreen').classList.remove('hidden');
+    }
+
+    function handleTitleStart() {
+      sound.playCoin();
+      document.getElementById('titleScreen').classList.add('hidden');
+      document.getElementById('menuScreen').classList.remove('hidden');
+    }
+
+    function returnToTitleScreen() {
+      sound.playMenuClick();
+      document.getElementById('menuScreen').classList.add('hidden');
+      document.getElementById('titleScreen').classList.remove('hidden');
+      document.getElementById('gameHeader').classList.add('hidden');
+      isPlaying = false;
+      clearInterval(timerTimer);
+    }
+
+    // Modal helpers
+    function showDifficultyModal() { sound.playMenuClick(); document.getElementById('diffModal').classList.remove('hidden'); }
+    function closeDiffModal() { sound.playMenuClick(); document.getElementById('diffModal').classList.add('hidden'); }
+    function setDifficulty(d) { sound.playCoin(); curDiff = d; closeDiffModal(); }
+
+    function showHowToPlayModal() { sound.playMenuClick(); document.getElementById('howModal').classList.remove('hidden'); }
+    function closeHowModal() { sound.playMenuClick(); document.getElementById('howModal').classList.add('hidden'); }
+
+    function showLeaderboardModal() { sound.playMenuClick(); renderLeaderboardUI(); document.getElementById('leaderboardModal').classList.remove('hidden'); }
+    function closeLeaderboardModal() { sound.playMenuClick(); document.getElementById('leaderboardModal').classList.add('hidden'); }
+
+    function switchLbTab(tab) {
+      activeLbTab = tab;
+      const btnRogue = document.getElementById('lbTabRogue');
+      const btnClassic = document.getElementById('lbTabClassic');
+      if (tab === 'roguelike') {
+        btnRogue.className = 'flex-1 py-1.5 rounded-lg bg-amber-500 text-slate-950 transition';
+        btnClassic.className = 'flex-1 py-1.5 rounded-lg text-purple-300 hover:text-white transition';
+      } else {
+        btnClassic.className = 'flex-1 py-1.5 rounded-lg bg-amber-500 text-slate-950 transition';
+        btnRogue.className = 'flex-1 py-1.5 rounded-lg text-purple-300 hover:text-white transition';
+      }
+      renderLeaderboardUI();
+    }
+
+    function renderLeaderboardUI() {
+      const container = document.getElementById('leaderboardList');
+      container.innerHTML = '';
+      const list = activeLbTab === 'roguelike' ? lbRogue : lbClassic;
+      list.sort((a, b) => b.score - a.score);
+
+      list.slice(0, 5).forEach((item, idx) => {
+        const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
+        const row = document.createElement('div');
+        row.className = 'flex justify-between items-center bg-black/40 px-3 py-2 rounded-xl border border-purple-500/20';
+        row.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span>${medal}</span>
+            <span class="pixel-text text-amber-200 text-[10px]">${item.name}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-[9px] text-purple-400 pixel-text">${item.stage || item.diff || 'NORM'}</span>
+            <span class="pixel-text text-amber-300 font-bold text-xs">${item.score}</span>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function saveScoreRecord() {
+      sound.playCoin();
+      const input = document.getElementById('playerNameInput');
+      let name = input.value.trim().toUpperCase() || 'MAO';
+      name = name.replace(/[^A-Z0-9]/g, '').slice(0, 6) || 'MAO';
+
+      if (activeGameMode === GAME_MODES.ROGUELIKE) {
+        lbRogue.push({
+          name,
+          score,
+          stage: `STAGE ${rogueStage}`
+        });
+        lbRogue.sort((a, b) => b.score - a.score);
+        localStorage.setItem('maomao_rogue_lb', JSON.stringify(lbRogue));
+      } else {
+        lbClassic.push({
+          name,
+          score,
+          diff: curDiff.slice(0, 4).toUpperCase()
+        });
+        lbClassic.sort((a, b) => b.score - a.score);
+        localStorage.setItem('maomao_classic_lb', JSON.stringify(lbClassic));
+      }
+
+      document.getElementById('recordInputSection').innerHTML = `
+        <div class="text-xs text-emerald-300 font-bold bg-emerald-950/60 py-1.5 rounded-xl border border-emerald-500/40">
+          ✓ 已成功登錄到英雄榜！
+        </div>
+      `;
+    }
+
+    function togglePause() {
+      if (!isPlaying) return;
+      isPaused = !isPaused;
+      document.getElementById('pauseIcon').textContent = isPaused ? '▶️' : '⏸️';
+    }
+
+    function resizeCanvas() {
+      const parent = canvas.parentElement;
+      const rect = parent.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+
+      cw = rect.width;
+      ch = rect.height;
+
+      canvas.width = Math.floor(cw * dpr);
+      canvas.height = Math.floor(ch * dpr);
+      ctx.resetTransform?.();
+      ctx.scale(dpr, dpr);
+
+      if (player.x === 0) {
+        player.x = cw / 2;
+        player.targetX = cw / 2;
+        player.y = ch - 90;
+        player.targetY = player.y;
+      }
+    }
+
+    function setTouchTarget(clientX, clientY) {
+      const rect = canvas.getBoundingClientRect();
+      const relX = clientX - rect.left;
+      const relY = clientY - rect.top;
+      player.targetX = Math.max(player.width / 2, Math.min(cw - player.width / 2, relX));
+      if (activeGameMode === GAME_MODES.ROGUELIKE) {
+        player.targetY = Math.max(player.height / 2, Math.min(ch - player.height / 2, relY));
+      }
+    }
+
+    function initTitleMascot() {
       const hudCanvas = document.getElementById('hudAvatarCanvas');
       if (hudCanvas) {
         const hctx = hudCanvas.getContext('2d');
         hctx.clearRect(0, 0, 32, 32);
-        drawPixelMaoMaoGhost(hctx, 16, 16, 30);
+        drawPixelMaoMao(hctx, 16, 16, 30);
       }
 
       const titleMaoMao = document.getElementById('titleMaoMaoCanvas');
       if (titleMaoMao) {
         const tctx = titleMaoMao.getContext('2d');
         tctx.clearRect(0, 0, 64, 64);
-        drawPixelMaoMaoGhost(tctx, 32, 32, 60, false, 1, true);
+        drawPixelMaoMao(tctx, 32, 32, 60, false, 1, true);
       }
 
       const bgCanvas = document.getElementById('titleCanvas');
@@ -796,1222 +2181,77 @@
         bctx.fillRect(30, 220, 40, 60);
         bctx.fillRect(110, 200, 60, 80);
         bctx.fillRect(230, 230, 45, 50);
-        bctx.beginPath();
-        bctx.moveTo(20, 220); bctx.lineTo(50, 170); bctx.lineTo(80, 220); bctx.fill();
-        bctx.beginPath();
-        bctx.moveTo(100, 200); bctx.lineTo(140, 150); bctx.lineTo(180, 200); bctx.fill();
       }
     }
 
-    function resizeCanvas() {
-      const parent = canvas.parentElement;
-      const rect = parent.getBoundingClientRect();
-      const dpr = window.devicePixelRatio || 1;
-
-      cw = rect.width;
-      ch = rect.height;
-
-      canvas.width = cw * dpr;
-      canvas.height = ch * dpr;
-      ctx.resetTransform?.();
-      ctx.scale(dpr, dpr);
-
-      player.y = ch - player.height * 0.55 - 12;
-      if (player.x === 0) {
-        player.x = cw / 2;
-        player.targetX = cw / 2;
-      }
-    }
-    window.addEventListener('resize', resizeCanvas);
-
-    window.addEventListener('keydown', (e) => {
-      const title = document.getElementById('titleScreen');
-      if (!title.classList.contains('hidden')) {
-        if (e.key === ' ' || e.key === 'Enter') {
-          handleTitleStart();
-          return;
-        }
-      }
-
-      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.Left = true;
-      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.Right = true;
-      if (e.key === ' ' || e.key === 'p' || e.key === 'P') togglePause();
-    });
-
-    window.addEventListener('keyup', (e) => {
-      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.Left = false;
-      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.Right = false;
-    });
-
-    function setTargetByClientX(clientX) {
-      const rect = canvas.getBoundingClientRect();
-      const relX = clientX - rect.left;
-      player.targetX = Math.max(player.width / 2, Math.min(cw - player.width / 2, relX));
-    }
-
-    canvas.addEventListener('pointerdown', (e) => {
-      sound.init();
-      setTargetByClientX(e.clientX);
-    });
-    canvas.addEventListener('pointermove', (e) => {
-      if (e.buttons > 0 || e.pointerType === 'touch') {
-        setTargetByClientX(e.clientX);
-      }
-    });
-
-    // Helper to get active difficulty attributes with Stage Scaling in Hard mode
-    function getActiveStageConfig() {
-      const cfg = DIFFICULTIES[curDiff];
-      if (curDiff !== 'hard') {
-        return {
-          fallSpeedMin: cfg.fallSpeedMin,
-          fallSpeedMax: cfg.fallSpeedMax,
-          spawnInterval: cfg.spawnInterval,
-          hazardChance: cfg.hazardChance,
-          wobbleAmp: 1.2
-        };
-      }
-
-      // Hard mode: 15-second Stage scaling
-      // Hazard chance scales from 38% up to 68% max
-      const stageIndex = currentStage - 1;
-      const hazardChance = Math.min(0.68, 0.38 + stageIndex * 0.06);
-      
-      // Speed increases noticeably every stage
-      const fallSpeedMin = cfg.fallSpeedMin + stageIndex * 0.7;
-      const fallSpeedMax = cfg.fallSpeedMax + stageIndex * 0.9;
-      
-      // Spawn interval compresses for frantic arcade pacing
-      const spawnInterval = Math.max(13, cfg.spawnInterval - stageIndex * 2.2);
-
-      // Snake wobble lateral drift amplitude increases
-      const wobbleAmp = Math.min(3.8, 1.6 + stageIndex * 0.45);
-
-      return {
-        fallSpeedMin,
-        fallSpeedMax,
-        spawnInterval,
-        hazardChance,
-        wobbleAmp
-      };
-    }
-
-    function spawnItem() {
-      const stageCfg = getActiveStageConfig();
-      // 困難闖關模式中，約 5.5% 稀有概率降落回血心心
-      const canSpawnHeart = (curDiff === 'hard') && Math.random() < 0.055;
-
-      let isHazard = false;
-      let isHeart = false;
-      let type = 0;
-      let emoji = '🍬';
-      let points = 10;
-
-      if (canSpawnHeart) {
-        isHeart = true;
-        type = 9;
-        emoji = '💖';
-        points = 50;
-      } else {
-        isHazard = Math.random() < stageCfg.hazardChance;
-        if (isHazard) {
-          // MONSTERS: 🧟 Frankenstein, 🧛 Vampire, 🧙‍♀️ Witch, 💀 Skull
-          const r = Math.floor(Math.random() * 4);
-          if (r === 0) { type = 5; emoji = '🧟'; }
-          else if (r === 1) { type = 6; emoji = '🧛'; }
-          else if (r === 2) { type = 7; emoji = '🧙‍♀️'; }
-          else { type = 8; emoji = '💀'; }
-        } else {
-          // CANDIES: 🍭 Lollipop, 🍬 Sweet, 🍫 Chocolate, 🍩 Donut, ⭐ Rainbow Star
-          const r = Math.random();
-          if (r < 0.35) { type = 0; emoji = '🍭'; points = 10; }
-          else if (r < 0.65) { type = 1; emoji = '🍬'; points = 15; }
-          else if (r < 0.82) { type = 2; emoji = '🍫'; points = 20; }
-          else if (r < 0.94) { type = 3; emoji = '🍩'; points = 25; }
-          else { type = 4; emoji = '⭐'; points = 50; }
-        }
-      }
-
-      const radius = (type === 4 || isHeart) ? 24 : 20;
-      const x = radius + Math.random() * (cw - radius * 2);
-      const speed = stageCfg.fallSpeedMin + Math.random() * (stageCfg.fallSpeedMax - stageCfg.fallSpeedMin);
-
-      items.push({
-        x,
-        y: -35,
-        radius,
-        type,
-        emoji,
-        points,
-        speed,
-        rot: 0,
-        rotSpeed: (Math.random() - 0.5) * 0.05,
-        isHazard,
-        isHeart,
-        wobble: Math.random() * Math.PI * 2,
-        wobbleAmp: stageCfg.wobbleAmp
-      });
-    }
-
-    function createSparks(x, y, color, count = 8) {
-      for (let i = 0; i < count; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const vel = 2 + Math.random() * 4;
-        particles.push({
-          x,
-          y,
-          vx: Math.cos(angle) * vel,
-          vy: Math.sin(angle) * vel - 1,
-          color,
-          alpha: 1,
-          size: 3 + Math.random() * 4,
-          decay: 0.025 + Math.random() * 0.025
-        });
-      }
-    }
-
-    function initBackgroundLights() {
+    function initBackground() {
       backgroundLights = [];
       for (let i = 0; i < 24; i++) {
         backgroundLights.push({
           x: Math.random() * cw,
           y: Math.random() * ch,
-          radius: 14 + Math.random() * 32,
-          speedY: 0.3 + Math.random() * 0.8,
-          alpha: 0.1 + Math.random() * 0.3,
+          radius: 12 + Math.random() * 28,
+          speedY: 0.3 + Math.random() * 0.7,
+          alpha: 0.1 + Math.random() * 0.25,
           color: ['#a855f7', '#ec4899', '#f59e0b', '#3b82f6', '#10b981'][Math.floor(Math.random() * 5)]
         });
       }
     }
 
-    /* 
-     * 徹底杜絕瀏覽器 Emoji 黑影問題：
-     * 全部使用 Canvas 原生路徑向量繪製，不依賴操作系統字型，確保 100% 繽紛色彩與 16-bit 街機質感！
-     */
-    function drawGameItem(c, item) {
-      const r = item.radius;
-
-      if (item.type === 0) {
-        // 🍭 棒棒糖 (Lollipop)
-        // 白色糖棒
-        c.fillStyle = '#f8fafc';
-        c.fillRect(-2.5, 0, 5, r * 1.35);
-        c.fillStyle = '#cbd5e1';
-        c.fillRect(0.5, 0, 2, r * 1.35);
-
-        // 棒棒糖圓形本體
-        c.beginPath();
-        c.arc(0, -2, r * 0.82, 0, Math.PI * 2);
-        c.fillStyle = '#f43f5e';
-        c.fill();
-        c.lineWidth = 2;
-        c.strokeStyle = '#9f1239';
-        c.stroke();
-
-        // 糖果雙色旋渦
-        c.lineWidth = 2.5;
-        c.strokeStyle = '#facc15';
-        c.beginPath();
-        c.arc(0, -2, r * 0.52, 0.4, Math.PI * 1.5);
-        c.stroke();
-        c.strokeStyle = '#ffffff';
-        c.beginPath();
-        c.arc(0, -2, r * 0.26, 1.8, Math.PI * 2.6);
-        c.stroke();
-
-        // 高光光澤
-        c.beginPath();
-        c.arc(-r * 0.28, -r * 0.45, r * 0.25, 0, Math.PI * 2);
-        c.fillStyle = 'rgba(255, 255, 255, 0.7)';
-        c.fill();
-
-      } else if (item.type === 1) {
-        // 🍬 萬聖雙扭結糖果 (Wrapped Sweet Candy)
-        // 兩側包裝紙皺褶
-        c.fillStyle = '#ec4899';
-        c.strokeStyle = '#9d174d';
-        c.lineWidth = 1.5;
-        
-        // 左扭結
-        c.beginPath();
-        c.moveTo(-r * 0.5, 0);
-        c.lineTo(-r * 1.15, -r * 0.55);
-        c.lineTo(-r * 1.15, r * 0.55);
-        c.closePath();
-        c.fill(); c.stroke();
-
-        // 右扭結
-        c.beginPath();
-        c.moveTo(r * 0.5, 0);
-        c.lineTo(r * 1.15, -r * 0.55);
-        c.lineTo(r * 1.15, r * 0.55);
-        c.closePath();
-        c.fill(); c.stroke();
-
-        // 糖果主體 (圓潤橢圓)
-        c.beginPath();
-        c.ellipse(0, 0, r * 0.72, r * 0.58, 0, 0, Math.PI * 2);
-        c.fillStyle = '#f97316';
-        c.fill();
-        c.strokeStyle = '#c2410c';
-        c.lineWidth = 2;
-        c.stroke();
-
-        // 糖身黃/紫糖霜條紋
-        c.lineWidth = 2.5;
-        c.strokeStyle = '#facc15';
-        c.beginPath();
-        c.moveTo(-r * 0.2, -r * 0.48);
-        c.lineTo(-r * 0.05, r * 0.48);
-        c.stroke();
-
-        c.strokeStyle = '#a855f7';
-        c.beginPath();
-        c.moveTo(r * 0.1, -r * 0.48);
-        c.lineTo(r * 0.25, r * 0.48);
-        c.stroke();
-
-        // 弧形高光
-        c.lineWidth = 1.8;
-        c.strokeStyle = 'rgba(255, 255, 255, 0.85)';
-        c.beginPath();
-        c.arc(0, -r * 0.18, r * 0.45, Math.PI * 1.1, Math.PI * 1.9);
-        c.stroke();
-
-      } else if (item.type === 2) {
-        // 🍫 巧克力塊 (Chocolate Bar with Golden Foil)
-        const w = r * 1.35;
-        const h = r * 1.45;
-
-        // 金色箔紙底層
-        c.fillStyle = '#f59e0b';
-        c.fillRect(-w/2, -h/2 + h * 0.35, w, h * 0.65);
-        c.strokeStyle = '#d97706';
-        c.lineWidth = 1.5;
-        c.strokeRect(-w/2, -h/2 + h * 0.35, w, h * 0.65);
-
-        // 露出的濃郁黑巧克力塊
-        c.fillStyle = '#58240c';
-        c.fillRect(-w/2, -h/2, w, h * 0.55);
-        c.strokeStyle = '#381608';
-        c.lineWidth = 2;
-        c.strokeRect(-w/2, -h/2, w, h * 0.55);
-
-        // 巧克力格紋凹槽
-        c.strokeStyle = '#7c2d12';
-        c.lineWidth = 1.5;
-        c.beginPath();
-        c.moveTo(-w/2 + 2, -h/2 + h * 0.27);
-        c.lineTo(w/2 - 2, -h/2 + h * 0.27);
-        c.moveTo(0, -h/2 + 2);
-        c.lineTo(0, -h/2 + h * 0.53);
-        c.stroke();
-
-        // 金箔撕開鋸齒邊
-        c.fillStyle = '#fbbf24';
-        c.beginPath();
-        c.moveTo(-w/2, -h/2 + h * 0.35);
-        c.lineTo(-w * 0.2, -h/2 + h * 0.42);
-        c.lineTo(w * 0.1, -h/2 + h * 0.33);
-        c.lineTo(w/2, -h/2 + h * 0.38);
-        c.lineTo(w/2, -h/2 + h * 0.48);
-        c.lineTo(-w/2, -h/2 + h * 0.48);
-        c.closePath();
-        c.fill();
-
-      } else if (item.type === 3) {
-        // 🍩 草莓糖霜甜甜圈 (Glazed Donut)
-        // 麵團外圈
-        c.beginPath();
-        c.arc(0, 0, r * 0.85, 0, Math.PI * 2);
-        c.fillStyle = '#d97706';
-        c.fill();
-        c.strokeStyle = '#92400e';
-        c.lineWidth = 2;
-        c.stroke();
-
-        // 粉紅草莓糖霜
-        c.beginPath();
-        c.arc(0, 0, r * 0.72, 0, Math.PI * 2);
-        c.fillStyle = '#f472b6';
-        c.fill();
-
-        // 甜甜圈中心孔洞
-        c.beginPath();
-        c.arc(0, 0, r * 0.32, 0, Math.PI * 2);
-        c.fillStyle = '#0f031e';
-        c.fill();
-        c.strokeStyle = '#d97706';
-        c.lineWidth = 2;
-        c.stroke();
-
-        // 彩色糖粒裝飾 (Rainbow Sprinkles)
-        const sprinkleColors = ['#fde047', '#38bdf8', '#4ade80', '#ffffff'];
-        const offsets = [
-          [-r * 0.45, -r * 0.3, 0.4],
-          [r * 0.42, -r * 0.32, -0.6],
-          [-r * 0.35, r * 0.38, 0.8],
-          [r * 0.38, r * 0.35, -0.2]
-        ];
-        offsets.forEach(([sx, sy, rot], idx) => {
-          c.save();
-          c.translate(sx, sy);
-          c.rotate(rot);
-          c.fillStyle = sprinkleColors[idx % sprinkleColors.length];
-          c.fillRect(-3, -1.2, 6, 2.4);
-          c.restore();
-        });
-
-      } else if (item.type === 4) {
-        // ⭐ 彩虹金星 (Super Star)
-        // 五角星幾何路徑
-        c.beginPath();
-        const spikes = 5;
-        const outer = r * 0.95;
-        const inner = r * 0.45;
-        let rot = Math.PI / 2 * 3;
-        const step = Math.PI / spikes;
-
-        for (let i = 0; i < spikes; i++) {
-          c.lineTo(Math.cos(rot) * outer, Math.sin(rot) * outer);
-          rot += step;
-          c.lineTo(Math.cos(rot) * inner, Math.sin(rot) * inner);
-          rot += step;
-        }
-        c.closePath();
-
-        const grad = c.createRadialGradient(0, -r * 0.2, 2, 0, 0, outer);
-        grad.addColorStop(0, '#fef08a');
-        grad.addColorStop(0.6, '#facc15');
-        grad.addColorStop(1, '#ea580c');
-        c.fillStyle = grad;
-        c.fill();
-        c.strokeStyle = '#b45309';
-        c.lineWidth = 2;
-        c.stroke();
-
-        // 萌萌大眼
-        c.fillStyle = '#0f172a';
-        c.fillRect(-r * 0.24, -r * 0.15, 3.5, 6);
-        c.fillRect(r * 0.14, -r * 0.15, 3.5, 6);
-        c.fillStyle = '#ffffff';
-        c.fillRect(-r * 0.24, -r * 0.15, 2, 2);
-        c.fillRect(r * 0.14, -r * 0.15, 2, 2);
-
-        // 星星頂部閃光
-        c.beginPath();
-        c.arc(-r * 0.32, -r * 0.45, 2.5, 0, Math.PI * 2);
-        c.fillStyle = '#ffffff';
-        c.fill();
-
-      } else if (item.type === 9) {
-        // 💖 回復愛心 (Healing Heart)
-        c.beginPath();
-        const s = r * 0.85;
-        c.moveTo(0, s * 0.7);
-        c.bezierCurveTo(-s * 1.1, s * 0.2, -s * 1.1, -s * 0.8, 0, -s * 0.45);
-        c.bezierCurveTo(s * 1.1, -s * 0.8, s * 1.1, s * 0.2, 0, s * 0.7);
-        c.closePath();
-
-        const heartGrad = c.createRadialGradient(0, -s * 0.2, 2, 0, 0, s);
-        heartGrad.addColorStop(0, '#fda4af');
-        heartGrad.addColorStop(0.5, '#f43f5e');
-        heartGrad.addColorStop(1, '#9f1239');
-        c.fillStyle = heartGrad;
-        c.fill();
-        c.strokeStyle = '#ffe4e6';
-        c.lineWidth = 2;
-        c.stroke();
-
-        // 愛心弧形高光
-        c.lineWidth = 2;
-        c.strokeStyle = 'rgba(255, 255, 255, 0.85)';
-        c.beginPath();
-        c.arc(-s * 0.4, -s * 0.35, s * 0.3, Math.PI * 0.9, Math.PI * 1.8);
-        c.stroke();
-
-      } else if (item.type === 5) {
-        // 🧟 殭屍 (Frankenstein Zombie)
-        // 綠色方頭
-        c.fillStyle = '#84cc16';
-        c.fillRect(-r * 0.65, -r * 0.6, r * 1.3, r * 1.2);
-        c.strokeStyle = '#3f6212';
-        c.lineWidth = 2;
-        c.strokeRect(-r * 0.65, -r * 0.6, r * 1.3, r * 1.2);
-
-        // 紫色鋸齒瀏海
-        c.fillStyle = '#581c87';
-        c.beginPath();
-        c.moveTo(-r * 0.65, -r * 0.6);
-        c.lineTo(r * 0.65, -r * 0.6);
-        c.lineTo(r * 0.65, -r * 0.2);
-        c.lineTo(r * 0.35, -r * 0.4);
-        c.lineTo(0, -r * 0.2);
-        c.lineTo(-r * 0.35, -r * 0.4);
-        c.lineTo(-r * 0.65, -r * 0.2);
-        c.closePath();
-        c.fill();
-
-        // 紅光眼
-        c.fillStyle = '#dc2626';
-        c.fillRect(-r * 0.45, -r * 0.08, 5, 5);
-        c.fillRect(r * 0.2, -r * 0.08, 5, 5);
-
-        // 嘴部黑色縫線
-        c.strokeStyle = '#1e293b';
-        c.lineWidth = 2;
-        c.beginPath();
-        c.moveTo(-r * 0.35, r * 0.32);
-        c.lineTo(r * 0.35, r * 0.32);
-        c.moveTo(-r * 0.18, r * 0.22); c.lineTo(-r * 0.18, r * 0.42);
-        c.moveTo(r * 0.15, r * 0.22); c.lineTo(r * 0.15, r * 0.42);
-        c.stroke();
-
-      } else if (item.type === 6) {
-        // 🧛 吸血鬼 (Vampire Dracula)
-        // 黑色立領披風
-        c.fillStyle = '#dc2626';
-        c.beginPath();
-        c.moveTo(-r * 0.85, -r * 0.7);
-        c.lineTo(0, r * 0.8);
-        c.lineTo(r * 0.85, -r * 0.7);
-        c.lineTo(r * 0.5, r * 0.1);
-        c.lineTo(-r * 0.5, r * 0.1);
-        c.closePath();
-        c.fill();
-
-        // 白皙臉龐
-        c.beginPath();
-        c.arc(0, 0, r * 0.55, 0, Math.PI * 2);
-        c.fillStyle = '#f8fafc';
-        c.fill();
-        c.strokeStyle = '#0f172a';
-        c.lineWidth = 1.5;
-        c.stroke();
-
-        // 黑色尖美人尖頭髮
-        c.fillStyle = '#0f172a';
-        c.beginPath();
-        c.arc(0, -r * 0.12, r * 0.52, Math.PI, 0);
-        c.lineTo(0, -r * 0.15);
-        c.closePath();
-        c.fill();
-
-        // 紅眼與兩顆白尖牙
-        c.fillStyle = '#b91c1c';
-        c.fillRect(-r * 0.25, -r * 0.05, 3.5, 3.5);
-        c.fillRect(r * 0.12, -r * 0.05, 3.5, 3.5);
-
-        // 獠牙
-        c.fillStyle = '#ffffff';
-        c.beginPath();
-        c.moveTo(-r * 0.18, r * 0.2); c.lineTo(-r * 0.12, r * 0.38); c.lineTo(-r * 0.06, r * 0.2);
-        c.moveTo(r * 0.06, r * 0.2); c.lineTo(r * 0.12, r * 0.38); c.lineTo(r * 0.18, r * 0.2);
-        c.fill();
-
-      } else if (item.type === 7) {
-        // 🧙‍♀️ 女巫 (Witch)
-        // 綠臉
-        c.beginPath();
-        c.arc(0, r * 0.15, r * 0.48, 0, Math.PI * 2);
-        c.fillStyle = '#a3e635';
-        c.fill();
-        c.strokeStyle = '#4d7c0f';
-        c.lineWidth = 1.5;
-        c.stroke();
-
-        // 紫色長髮
-        c.fillStyle = '#c084fc';
-        c.fillRect(-r * 0.55, r * 0.05, 5, r * 0.6);
-        c.fillRect(r * 0.42, r * 0.05, 5, r * 0.6);
-
-        // 黑色寬沿尖頂巫師帽
-        c.fillStyle = '#3b0764';
-        // 帽沿
-        c.beginPath();
-        c.ellipse(0, -r * 0.05, r * 0.9, r * 0.25, 0, 0, Math.PI * 2);
-        c.fill();
-        // 帽頂
-        c.beginPath();
-        c.moveTo(-r * 0.5, -r * 0.05);
-        c.lineTo(r * 0.3, -r * 0.9);
-        c.lineTo(r * 0.5, -r * 0.05);
-        c.closePath();
-        c.fill();
-
-        // 橘色帽帶
-        c.fillStyle = '#f97316';
-        c.fillRect(-r * 0.4, -r * 0.18, r * 0.8, 4);
-
-        // 眼睛
-        c.fillStyle = '#1e1b4b';
-        c.fillRect(-r * 0.25, r * 0.1, 4, 4);
-        c.fillRect(r * 0.12, r * 0.1, 4, 4);
-
-      } else if (item.type === 8) {
-        // 💀 骷髏 (Skull)
-        // 顱骨主體
-        c.beginPath();
-        c.arc(0, -r * 0.15, r * 0.58, 0, Math.PI * 2);
-        c.fillStyle = '#f8fafc';
-        c.fill();
-
-        // 下顎
-        c.fillRect(-r * 0.32, r * 0.15, r * 0.64, r * 0.4);
-        c.strokeStyle = '#64748b';
-        c.lineWidth = 1.8;
-        c.stroke();
-
-        // 黑空眼窩
-        c.fillStyle = '#0f172a';
-        c.beginPath();
-        c.arc(-r * 0.25, -r * 0.12, r * 0.16, 0, Math.PI * 2);
-        c.arc(r * 0.25, -r * 0.12, r * 0.16, 0, Math.PI * 2);
-        c.fill();
-
-        // 倒三角鼻孔
-        c.beginPath();
-        c.moveTo(0, r * 0.02);
-        c.lineTo(-3, r * 0.14);
-        c.lineTo(3, r * 0.14);
-        c.closePath();
-        c.fill();
-
-        // 骷髏牙縫線
-        c.strokeStyle = '#475569';
-        c.lineWidth = 1.5;
-        c.beginPath();
-        c.moveTo(-r * 0.25, r * 0.32); c.lineTo(r * 0.25, r * 0.32);
-        c.moveTo(-r * 0.15, r * 0.22); c.lineTo(-r * 0.15, r * 0.42);
-        c.moveTo(0, r * 0.22); c.lineTo(0, r * 0.42);
-        c.moveTo(r * 0.15, r * 0.22); c.lineTo(r * 0.15, r * 0.42);
-        c.stroke();
-      }
-    }
-
-    function advanceHardModeStage() {
-      sound.playStageClearHorn();
-
-      // Clear falling hazards to provide a fair transition breather
-      items = items.filter(it => !it.isHazard);
-
-      // Generous Stage Clear bonus points (scales with stage)
-      const stageBonus = 150 + currentStage * 75;
-      score += stageBonus;
-      updateScoreUI();
-
-      // Trigger Confetti & Particles across canvas
-      for (let i = 0; i < 30; i++) {
-        createSparks(Math.random() * cw, ch * 0.35, ['#facc15', '#ec4899', '#38bdf8', '#4ade80'][Math.floor(Math.random() * 4)], 2);
-      }
-
-      // Show Stage Clear Banner
-      const banner = document.getElementById('stageClearBanner');
-      const title = document.getElementById('stageClearTitle');
-      const reward = document.getElementById('stageClearReward');
-
-      title.textContent = `STAGE ${currentStage} CLEAR!`;
-      reward.textContent = `🎉 額外加分 +${stageBonus} PTS!`;
-
-      banner.classList.remove('opacity-0', 'scale-50');
-      banner.classList.add('opacity-100', 'scale-100');
-
-      setTimeout(() => {
-        banner.classList.remove('opacity-100', 'scale-100');
-        banner.classList.add('opacity-0', 'scale-50');
-      }, 1600);
-
-      // Advance stage number and reset 15-second countdown
-      currentStage++;
-      timeLeft = 15;
-      document.getElementById('timerText').textContent = timeLeft;
-
-      // Update Stage HUD
-      const stageBadge = document.getElementById('stageBadge');
-      stageBadge.textContent = `STAGE ${currentStage}`;
-      stageBadge.classList.add('scale-125');
-      setTimeout(() => stageBadge.classList.remove('scale-125'), 300);
-
-      triggerComboBanner(`⚡ STAGE ${currentStage} 開始！注意速度！`);
-    }
-
-    function updateGame() {
-      if (!isPlaying || isPaused) return;
-
-      if (keys.Left) player.targetX -= player.speed;
-      if (keys.Right) player.targetX += player.speed;
-      player.targetX = Math.max(player.width / 2, Math.min(cw - player.width / 2, player.targetX));
-
-      player.x += (player.targetX - player.x) * 0.3;
-      player.squash += (1 - player.squash) * 0.14;
-      if (player.cheerTimer > 0) player.cheerTimer--;
-      if (player.invulnerableTimer > 0) player.invulnerableTimer--;
-
-      // Item spawning based on current stage config
-      const stageCfg = getActiveStageConfig();
-      spawnTimer++;
-      if (spawnTimer >= stageCfg.spawnInterval) {
-        spawnTimer = 0;
-        spawnItem();
-      }
-
-      // Catch box
-      const catchY = player.y - player.height * 0.22;
-
-      for (let i = items.length - 1; i >= 0; i--) {
-        const item = items[i];
-        item.y += item.speed;
-        item.rot += item.rotSpeed;
-        item.wobble += 0.07;
-
-        // In Hard Mode, apply snake-like lateral swing
-        if (curDiff === 'hard') {
-          item.x += Math.sin(item.wobble) * item.wobbleAmp;
-          // Boundary clamp to keep visible
-          item.x = Math.max(item.radius, Math.min(cw - item.radius, item.x));
-        }
-
-        const dx = Math.abs(item.x - player.x);
-        const dy = Math.abs(item.y - catchY);
-
-        if (dx < (player.width * 0.44 + item.radius) && dy < (player.height * 0.32 + item.radius)) {
-          // HIT
-          if (item.isHazard) {
-            if (player.invulnerableTimer <= 0) {
-              sound.playHurt();
-              hearts--;
-              combo = 0;
-              updateHeartsUI();
-              updateComboUI();
-              player.invulnerableTimer = 65;
-              player.squash = 0.72;
-              createSparks(item.x, item.y, '#ef4444', 14);
-
-              if (hearts <= 0) {
-                endGame(false);
-                return;
-              }
-            }
-          } else if (item.isHeart) {
-            // Rare Healing Heart Catch!
-            sound.playHeal();
-            if (hearts < maxHearts) {
-              hearts++;
-              updateHeartsUI();
-              triggerComboBanner('💖 生命回復！HP +1！');
-            } else {
-              // 若愛心已滿，獎勵額外大分
-              score += 150;
-              updateScoreUI();
-              triggerComboBanner('💖 滿血激勵！+150 PTS！');
-            }
-            player.squash = 1.32;
-            player.cheerTimer = 20;
-            createSparks(item.x, item.y, '#f43f5e', 18);
-          } else {
-            // Sweet Catch
-            combo++;
-            if (combo > maxCombo) maxCombo = combo;
-            player.squash = 1.28;
-            player.cheerTimer = 16;
-
-            if (item.type === 4) {
-              sound.playStarCatch();
-              createSparks(item.x, item.y, '#facc15', 18);
-            } else {
-              sound.playCandyCatch(combo);
-              createSparks(item.x, item.y, '#fb7185', 9);
-            }
-
-            const multiplier = combo >= 15 ? 4 : combo >= 8 ? 3 : combo >= 4 ? 2 : 1;
-            score += item.points * multiplier;
-
-            updateScoreUI();
-            updateComboUI();
-
-            if (combo === 5 || combo === 10 || combo === 20 || combo === 30) {
-              sound.playFeverFanfare();
-              triggerComboBanner(`🔥 COMBO x${combo}! 茂茂大狂歡!!`);
-            }
-          }
-
-          items.splice(i, 1);
-          continue;
-        }
-
-        // Drop out of screen
-        if (item.y > ch + 40) {
-          if (!item.isHazard && combo > 0) {
-            combo = 0;
-            updateComboUI();
-          }
-          items.splice(i, 1);
-        }
-      }
-
-      // Update Particles
-      for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-        p.x += p.vx;
-        p.y += p.vy;
-        p.alpha -= p.decay;
-        if (p.alpha <= 0) particles.splice(i, 1);
-      }
-
-      // Background lights
-      const fever = Math.min(combo / 15, 1);
-      const stageSpeedBoost = curDiff === 'hard' ? (currentStage * 0.4) : 0;
-      backgroundLights.forEach(l => {
-        l.y -= l.speedY * (1 + fever * 2.5 + stageSpeedBoost);
-        if (l.y < -50) {
-          l.y = ch + 50;
-          l.x = Math.random() * cw;
-        }
-      });
-    }
-
-    function render() {
-      ctx.clearRect(0, 0, cw, ch);
-
-      const feverFactor = Math.min(combo / 20, 1);
-
-      // 1. Dynamic 16-bit Background
-      const bgGrad = ctx.createRadialGradient(
-        cw / 2, ch * 0.4, 40,
-        cw / 2, ch * 0.5, cw * 0.8
-      );
-      if (combo >= 10 || (curDiff === 'hard' && currentStage >= 3)) {
-        bgGrad.addColorStop(0, `rgba(180, 30, 120, ${0.4 + feverFactor * 0.3})`);
-        bgGrad.addColorStop(0.5, `rgba(88, 28, 135, ${0.7 + feverFactor * 0.2})`);
-        bgGrad.addColorStop(1, '#090214');
-      } else {
-        bgGrad.addColorStop(0, '#230a3c');
-        bgGrad.addColorStop(1, '#0d0317');
-      }
-      ctx.fillStyle = bgGrad;
-      ctx.fillRect(0, 0, cw, ch);
-
-      // 2. Combo Aura Lights
-      backgroundLights.forEach(light => {
-        ctx.save();
-        ctx.globalAlpha = Math.min(1, light.alpha * (1 + feverFactor * 1.5));
-        const glowGrad = ctx.createRadialGradient(light.x, light.y, 0, light.x, light.y, light.radius * (1 + feverFactor));
-        glowGrad.addColorStop(0, light.color);
-        glowGrad.addColorStop(1, 'transparent');
-        ctx.fillStyle = glowGrad;
-        ctx.beginPath();
-        ctx.arc(light.x, light.y, light.radius * (1 + feverFactor), 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-      });
-
-      // 3. Falling items
-      items.forEach(item => {
-        ctx.save();
-        ctx.translate(item.x, item.y);
-        ctx.rotate(item.rot);
-
-        if (item.isHazard) {
-          // 怪物警告光環（紅色外框與半透明底色）
-          ctx.strokeStyle = 'rgba(239, 68, 68, 0.95)';
-          ctx.lineWidth = 2.5;
-          ctx.beginPath();
-          ctx.arc(0, 0, item.radius + 5, 0, Math.PI * 2);
-          ctx.stroke();
-
-          ctx.fillStyle = 'rgba(153, 27, 27, 0.35)';
-          ctx.beginPath();
-          ctx.arc(0, 0, item.radius + 3, 0, Math.PI * 2);
-          ctx.fill();
-
-          // 繪製高解析度彩色向量怪物
-          drawGameItem(ctx, item);
-
-          // 角落警示標籤
-          ctx.fillStyle = '#ef4444';
-          ctx.font = 'bold 12px sans-serif';
-          ctx.textAlign = 'center';
-          ctx.fillText('!', item.radius * 0.75, -item.radius * 0.7);
-
-        } else if (item.isHeart) {
-          // 回血心心粉紅光暈
-          ctx.strokeStyle = 'rgba(244, 63, 94, 0.9)';
-          ctx.lineWidth = 2.5;
-          ctx.beginPath();
-          ctx.arc(0, 0, item.radius + 5, 0, Math.PI * 2);
-          ctx.stroke();
-
-          ctx.fillStyle = 'rgba(244, 63, 94, 0.25)';
-          ctx.beginPath();
-          ctx.arc(0, 0, item.radius + 3, 0, Math.PI * 2);
-          ctx.fill();
-
-          // 繪製粉紅寶石愛心
-          drawGameItem(ctx, item);
-
-        } else {
-          // 糖果金黃/粉紫光暈圈
-          if (item.type === 4) {
-            // 彩虹星星黃金光圈
-            ctx.fillStyle = 'rgba(250, 204, 21, 0.25)';
-            ctx.beginPath();
-            ctx.arc(0, 0, item.radius + 6, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.strokeStyle = 'rgba(250, 204, 21, 0.8)';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(0, 0, item.radius + 6, 0, Math.PI * 2);
-            ctx.stroke();
-          } else {
-            // 一般糖果柔和粉光
-            ctx.fillStyle = 'rgba(244, 114, 182, 0.15)';
-            ctx.beginPath();
-            ctx.arc(0, 0, item.radius + 4, 0, Math.PI * 2);
-            ctx.fill();
-          }
-
-          // 繪製高飽和度美味彩色糖果
-          drawGameItem(ctx, item);
-        }
-
-        ctx.restore();
-      });
-
-      // 4. Draw MaoMao in Halloween Little Ghost Sheet
-      drawPixelMaoMaoGhost(
-        ctx,
-        player.x,
-        player.y,
-        player.width,
-        player.invulnerableTimer > 0,
-        player.squash,
-        player.cheerTimer > 0
-      );
-
-      // 5. Active particles
-      particles.forEach(p => {
-        ctx.save();
-        ctx.globalAlpha = Math.max(0, p.alpha);
-        ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-      });
-    }
-
-    function gameLoop() {
-      updateGame();
-      render();
-      requestAnimationFrame(gameLoop);
-    }
-
-    function updateHeartsUI() {
-      const c = document.getElementById('heartsContainer');
-      c.innerHTML = '';
-      for (let i = 0; i < maxHearts; i++) {
-        const span = document.createElement('span');
-        span.className = 'text-base transition-transform duration-200';
-        span.textContent = i < hearts ? '❤️' : '🖤';
-        c.appendChild(span);
-      }
-    }
-
-    function updateScoreUI() {
-      document.getElementById('scoreText').textContent = score;
-    }
-
-    function updateComboUI() {
-      const badge = document.getElementById('comboBadge');
-      const val = document.getElementById('comboVal');
-      const overlay = document.getElementById('feverOverlay');
-
-      if (combo >= 2) {
-        badge.classList.remove('hidden');
-        val.textContent = combo;
-        if (combo >= 10) {
-          badge.className = 'pixel-text text-[9px] text-pink-300 animate-pulse px-1.5 py-0.5 rounded-full bg-pink-500/30 border border-pink-400';
-          overlay.classList.remove('opacity-0');
-        } else {
-          badge.className = 'pixel-text text-[9px] text-amber-300';
-          overlay.classList.add('opacity-0');
-        }
-      } else {
-        badge.classList.add('hidden');
-        overlay.classList.add('opacity-0');
-      }
-    }
-
-    function triggerComboBanner(text) {
-      const banner = document.getElementById('comboBanner');
-      banner.textContent = text;
-      banner.classList.remove('opacity-0', '-translate-y-4', 'scale-75');
-      banner.classList.add('opacity-100', 'translate-y-0', 'scale-110');
-      setTimeout(() => {
-        banner.classList.add('opacity-0', '-translate-y-4', 'scale-75');
-        banner.classList.remove('opacity-100', 'translate-y-0', 'scale-110');
-      }, 1200);
-    }
-
-    // Title Screen Start
-    function handleTitleStart() {
-      sound.playCoin();
-      document.getElementById('titleScreen').classList.add('hidden');
-      document.getElementById('menuScreen').classList.remove('hidden');
-    }
-
-    function returnToTitleScreen() {
-      sound.playMenuClick();
-      document.getElementById('menuScreen').classList.add('hidden');
-      document.getElementById('titleScreen').classList.remove('hidden');
-      document.getElementById('gameHeader').classList.add('hidden');
-      isPlaying = false;
-      clearInterval(timerTimer);
-    }
-
-    function openMenuFromGame() {
-      sound.playMenuClick();
-      isPlaying = false;
-      clearInterval(timerTimer);
-      document.getElementById('endModal').classList.add('hidden');
-      document.getElementById('gameHeader').classList.add('hidden');
-      document.getElementById('menuScreen').classList.remove('hidden');
-    }
-
-    function showDifficultyModal() {
-      sound.playMenuClick();
-      document.getElementById('diffModal').classList.remove('hidden');
-    }
-    function closeDiffModal() {
-      sound.playMenuClick();
-      document.getElementById('diffModal').classList.add('hidden');
-    }
-
-    function setDifficulty(diff) {
-      sound.playCoin();
-      curDiff = diff;
-      document.getElementById('currentDiffDisplay').textContent = diff === 'hard' ? 'HARD (15s)' : diff.toUpperCase();
-      closeDiffModal();
-    }
-
-    function showHowToPlayModal() {
-      sound.playMenuClick();
-      document.getElementById('howModal').classList.remove('hidden');
-    }
-    function closeHowModal() {
-      sound.playMenuClick();
-      document.getElementById('howModal').classList.add('hidden');
-    }
-
-    function showLeaderboardModal() {
-      sound.playMenuClick();
-      renderLeaderboardUI();
-      document.getElementById('leaderboardModal').classList.remove('hidden');
-    }
-    function closeLeaderboardModal() {
-      sound.playMenuClick();
-      document.getElementById('leaderboardModal').classList.add('hidden');
-    }
-
-    function renderLeaderboardUI() {
-      const container = document.getElementById('leaderboardList');
-      container.innerHTML = '';
-      leaderboard.sort((a, b) => b.score - a.score);
-
-      leaderboard.slice(0, 5).forEach((item, idx) => {
-        const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
-        const row = document.createElement('div');
-        row.className = 'flex justify-between items-center bg-black/40 px-3 py-2 rounded-xl border border-purple-500/20';
-        row.innerHTML = `
-          <div class="flex items-center gap-2">
-            <span>${medal}</span>
-            <span class="pixel-text text-amber-200 text-[10px]">${item.name}</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="text-[9px] text-purple-400 pixel-text">${item.diff || 'NORM'}</span>
-            <span class="pixel-text text-amber-300 font-bold text-xs">${item.score}</span>
-          </div>
-        `;
-        container.appendChild(row);
-      });
-
-      if (leaderboard.length > 0) {
-        document.getElementById('titleHiScore').textContent = leaderboard[0].score;
-      }
-    }
-
-    function saveScoreRecord() {
-      sound.playCoin();
-      const input = document.getElementById('playerNameInput');
-      let name = input.value.trim().toUpperCase() || 'MAO';
-      name = name.replace(/[^A-Z0-9]/g, '').slice(0, 6) || 'MAO';
-
-      const diffTag = curDiff === 'hard' ? `HARD-S${currentStage}` : curDiff.slice(0, 4).toUpperCase();
-      leaderboard.push({
-        name,
-        score,
-        diff: diffTag
-      });
-      leaderboard.sort((a, b) => b.score - a.score);
-      localStorage.setItem('maomao_snes_leaderboard', JSON.stringify(leaderboard));
-
-      document.getElementById('recordInputSection').innerHTML = `
-        <div class="text-xs text-emerald-300 font-bold bg-emerald-950/60 py-2 rounded-xl border border-emerald-500/40">
-          ✓ 已成功登錄到英雄榜！
-        </div>
-      `;
-    }
-
-    function startGameDirectly() {
-      sound.playCoin();
-      document.getElementById('menuScreen').classList.add('hidden');
-      document.getElementById('endModal').classList.add('hidden');
-      document.getElementById('gameHeader').classList.remove('hidden');
-
-      const cfg = DIFFICULTIES[curDiff];
-      document.getElementById('diffBadge').textContent = cfg.id.toUpperCase();
-
-      const stageBadge = document.getElementById('stageBadge');
-      if (curDiff === 'hard') {
-        currentStage = 1;
-        stageBadge.textContent = 'STAGE 1';
-        stageBadge.classList.remove('hidden');
-      } else {
-        stageBadge.classList.add('hidden');
-      }
-
-      maxHearts = cfg.maxHearts;
-      hearts = maxHearts;
-      timeLeft = cfg.timeLimit;
-      score = 0;
-      combo = 0;
-      maxCombo = 0;
-      items = [];
-      particles = [];
-
-      updateHeartsUI();
-      updateScoreUI();
-      updateComboUI();
-      document.getElementById('timerText').textContent = timeLeft;
-
-      const timerBox = document.getElementById('timerContainer');
-      timerBox.className = 'flex items-center space-x-1 bg-indigo-500/20 px-2.5 py-1 rounded-xl border border-indigo-500/40';
-
-      isPlaying = true;
-      isPaused = false;
-      document.getElementById('pauseIcon').textContent = '⏸️';
-
-      // Reset record input UI on game end modal
-      document.getElementById('recordInputSection').innerHTML = `
-        <label class="block text-[11px] text-purple-300 mb-1">登錄英雄排行榜名字 (英數)：</label>
-        <div class="flex gap-2">
-          <input id="playerNameInput" type="text" maxlength="6" value="MAO" class="pixel-text w-full px-3 py-2 bg-black/60 border border-purple-400 rounded-xl text-center text-amber-300 uppercase text-xs focus:outline-none focus:border-amber-400">
-          <button onclick="saveScoreRecord()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-xs text-white shrink-0">保存</button>
-        </div>
-      `;
-
-      clearInterval(timerTimer);
-      timerTimer = setInterval(() => {
-        if (!isPlaying || isPaused) return;
-        timeLeft--;
-        document.getElementById('timerText').textContent = timeLeft;
-
-        // Visual alert when time is low in hard mode
-        if (curDiff === 'hard' && timeLeft <= 5) {
-          timerBox.className = 'flex items-center space-x-1 bg-rose-500/40 px-2.5 py-1 rounded-xl border border-rose-400 animate-pulse';
-        } else {
-          timerBox.className = 'flex items-center space-x-1 bg-indigo-500/20 px-2.5 py-1 rounded-xl border border-indigo-500/40';
-        }
-
-        if (timeLeft <= 0) {
-          if (curDiff === 'hard') {
-            // HARD MODE 15-SECOND STAGE RUSH: AUTOMATIC NEXT STAGE
-            advanceHardModeStage();
-          } else {
-            // Standard timeout victory for Easy / Medium
-            endGame(true);
-          }
-        }
-      }, 1000);
-    }
-
-    function endGame(isVictory) {
-      isPlaying = false;
-      clearInterval(timerTimer);
-      sound.playVictory();
-
-      const modal = document.getElementById('endModal');
-      const title = document.getElementById('endTitle');
-      const sub = document.getElementById('endSubtitle');
-      const emoji = document.getElementById('endEmoji');
-      const finalStageRow = document.getElementById('finalStageRow');
-      const finalStageText = document.getElementById('finalStageText');
-
-      if (curDiff === 'hard') {
-        finalStageRow.classList.remove('hidden');
-        finalStageText.textContent = `STAGE ${currentStage}`;
-      } else {
-        finalStageRow.classList.add('hidden');
-      }
-
-      if (isVictory) {
-        emoji.textContent = '🏆🍬';
-        title.textContent = '派對大豐收！STAGE CLEAR!';
-        sub.textContent = '茂茂接到了超級多的美味糖果，開心極了！';
-      } else {
-        emoji.textContent = '🎃👻';
-        title.textContent = 'GAME OVER! 怪物搗蛋!';
-        if (curDiff === 'hard') {
-          sub.textContent = `在狂風暴雨般的極限怪物潮中，茂茂勇闖到了 STAGE ${currentStage}！`;
-        } else {
-          sub.textContent = '愛心用完了，但小幽靈茂茂今天還是玩得超盡興！';
-        }
-      }
-
-      document.getElementById('finalScore').textContent = score;
-      document.getElementById('finalMaxCombo').textContent = maxCombo;
-
-      let honor = '萬聖糖果小學徒';
-      if (curDiff === 'hard' && currentStage >= 5) {
-        honor = '⚡ 15秒狂潮傳奇王者・幽靈神茂';
-      } else if (curDiff === 'hard' && currentStage >= 3) {
-        honor = '👑 極速闖關高階大師・茂茂';
-      } else if (score >= 600) {
-        honor = '👑 傳奇萬聖幽靈大宗師・茂茂';
-      } else if (score >= 350) {
-        honor = '⭐ 萬聖節接糖第一高手';
-      } else if (score >= 150) {
-        honor = '🍭 敏捷的小幽靈茂茂';
-      }
-      document.getElementById('finalHonor').textContent = honor;
-
-      modal.classList.remove('hidden');
-    }
-
-    function restartGame() {
-      startGameDirectly();
-    }
-
-    function togglePause() {
-      if (!isPlaying) return;
-      isPaused = !isPaused;
-      document.getElementById('pauseIcon').textContent = isPaused ? '▶️' : '⏸️';
-    }
-
-    // Header buttons
-    document.getElementById('soundBtn').addEventListener('click', () => {
-      sound.muted = !sound.muted;
-      document.getElementById('soundIcon').textContent = sound.muted ? '🔇' : '🔊';
-    });
-    document.getElementById('pauseBtn').addEventListener('click', togglePause);
-    document.getElementById('homeBtn').addEventListener('click', openMenuFromGame);
-
+    // BOOTSTRAP WINDOW ONLOAD
     window.onload = function() {
+      canvas = document.getElementById('gameCanvas');
+      ctx = canvas.getContext('2d');
+
       resizeCanvas();
-      initBackgroundLights();
-      renderStaticMascots();
+      window.addEventListener('resize', resizeCanvas);
+
+      // Keyboard Controls
+      window.addEventListener('keydown', (e) => {
+        const title = document.getElementById('titleScreen');
+        if (!title.classList.contains('hidden') && (e.key === ' ' || e.key === 'Enter')) {
+          handleTitleStart();
+          return;
+        }
+
+        if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.Left = true;
+        if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.Right = true;
+        if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') keys.Up = true;
+        if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') keys.Down = true;
+        if (e.key === ' ' || e.key === 'p' || e.key === 'P') togglePause();
+      });
+
+      window.addEventListener('keyup', (e) => {
+        if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.Left = false;
+        if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.Right = false;
+        if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') keys.Up = false;
+        if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') keys.Down = false;
+      });
+
+      // Pointer Controls
+      canvas.addEventListener('pointerdown', (e) => {
+        sound.init();
+        setTouchTarget(e.clientX, e.clientY);
+      });
+      canvas.addEventListener('pointermove', (e) => {
+        if (e.buttons > 0 || e.pointerType === 'touch') {
+          setTouchTarget(e.clientX, e.clientY);
+        }
+      });
+
+      // Buttons
+      document.getElementById('soundBtn').addEventListener('click', () => {
+        sound.muted = !sound.muted;
+        document.getElementById('soundIcon').textContent = sound.muted ? '🔇' : '🔊';
+      });
+      document.getElementById('pauseBtn').addEventListener('click', togglePause);
+      document.getElementById('homeBtn').addEventListener('click', openMenuFromGame);
+
+      initTitleMascot();
+      initBackground();
       renderLeaderboardUI();
+
+      // Start RAF loop
       requestAnimationFrame(gameLoop);
     };
   </script>
